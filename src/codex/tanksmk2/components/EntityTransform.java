@@ -10,13 +10,14 @@ import com.jme3.math.Vector3f;
 import com.simsilica.es.EntityComponent;
 
 /**
- *
+ * Represents the local transform of an entity.
+ * 
  * @author codex
  */
 public class EntityTransform implements EntityComponent {
     
-    private final Vector3f translation = new Vector3f();
-    private final Quaternion rotation = new Quaternion();
+    protected final Vector3f translation = new Vector3f();
+    protected final Quaternion rotation = new Quaternion();
 
     public EntityTransform(Vector3f translation, Quaternion rotation) {
         this.translation.set(translation);

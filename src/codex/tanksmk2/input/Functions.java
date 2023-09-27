@@ -5,6 +5,7 @@
 package codex.tanksmk2.input;
 
 import com.simsilica.lemur.input.FunctionId;
+import com.simsilica.lemur.input.InputDevice;
 import com.simsilica.lemur.input.InputMapper;
 
 /**
@@ -32,17 +33,43 @@ public interface Functions {
         }
     }
     
+    /**
+     * Initialize FunctionIds.
+     * @param group 
+     */
     public void initializeFunctionIds(String group);
+    
+    /**
+     * Initialize default mappings.
+     * @param im 
+     */
     public void initializeDefaultMappings(InputMapper im);
+    
+    /**
+     * Get the group name all FunctionIds are initialized to.
+     * @return 
+     */
     public String getGroupName();
+    
+    /**
+     * Get all FunctionIds.
+     * @return 
+     */
     public FunctionId[] getFunctions();
+    
+    /**
+     * Get the device this set of functions is associated with.
+     * @return 
+     */
+    public InputDevice getDevice();
+    
     
     public static class GroupIdManager {
         
-        private static long nextGroupId = 0;  
+        private static long nextGroupId = 0;
         
         private static String getNextId() {
-            return "InputGroup["+(nextGroupId++)+"]";
+            return "PlayerInputGroup["+(nextGroupId++)+"]";
         }
         
     }

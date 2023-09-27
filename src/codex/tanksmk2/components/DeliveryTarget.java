@@ -4,27 +4,27 @@
  */
 package codex.tanksmk2.components;
 
-import com.jme3.math.Vector3f;
 import com.simsilica.es.EntityComponent;
+import com.simsilica.es.EntityId;
 
 /**
  *
  * @author codex
  */
-public class AimDirection implements EntityComponent {
+public class DeliveryTarget implements EntityComponent {
     
-    private final Vector3f direction = new Vector3f();
-    
-    public AimDirection(Vector3f direction) {
-        this.direction.set(direction);
+    private final EntityId target;
+
+    public DeliveryTarget(EntityId target) {
+        this.target = target;
     }
 
-    public Vector3f getDirection() {
-        return direction;
+    public EntityId getTarget() {
+        return target;
     }
     @Override
     public String toString() {
-        return "AimDirection{" + "direction=" + direction + '}';
+        return "DeliveryTarget{" + "target=" + target + '}';
     }
     
 }

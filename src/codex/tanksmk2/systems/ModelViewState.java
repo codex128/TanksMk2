@@ -9,6 +9,7 @@ import codex.tanksmk2.components.Bone;
 import codex.tanksmk2.components.EntityTransform;
 import codex.tanksmk2.components.ModelInfo;
 import codex.tanksmk2.factories.ModelFactory;
+import codex.tanksmk2.util.GameUtils;
 import com.jme3.anim.SkinningControl;
 import com.jme3.app.Application;
 import com.jme3.scene.Spatial;
@@ -84,7 +85,7 @@ public class ModelViewState extends ESAppState {
         }
         
         public final void update() {
-            var transform = entity.get(EntityTransform.class);
+            var transform = GameUtils.getWorldTransform(ed, entity);
             spatial.setLocalTranslation(transform.getTranslation());
             spatial.setLocalRotation(transform.getRotation());
         }

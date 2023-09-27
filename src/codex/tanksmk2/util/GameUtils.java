@@ -16,6 +16,7 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.shape.Quad;
+import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.lemur.Axis;
@@ -94,17 +95,35 @@ public class GameUtils {
     
     public static Transform getWorldTransform(EntityData ed, EntityId id) {
         var transforms = new LinkedList<EntityTransform>();
-        var nextId = id;
-        while (ed.getComponent(nextId, Parent.class) != null) {
-            if (ed.getComponent(nextId, EntityTransform.class) != null) {
-                transforms.addFirst(ed.getComponent(nextId, EntityTransform.class));
+        while (id != null) {
+            if (ed.getComponent(id, EntityTransform.class) != null) {
+                transforms.addFirst(ed.getComponent(id, EntityTransform.class));
             }
-            nextId = ed.getComponent(nextId, Parent.class).getId();
+            var p = ed.getComponent(id, Parent.class);
+            if (p == null) break;
+            id = p.getId();
         }
         Transform world = new Transform();
         for (var t : transforms) {
             world.getTranslation().addLocal(world.getRotation().mult(t.getTranslation()));
-            world.getRotation().mult(t.getRotation());
+            world.getRotation().multLocal(t.getRotation());
+        }
+        return world;
+    }
+    public static Transform getWorldTransform(EntityData ed, Entity entity) {
+        var transforms = new LinkedList<EntityTransform>();
+        transforms.add(entity.get(EntityTransform.class));
+        var parent = ed.getComponent(entity.getId(), Parent.class);
+        while (parent != null) {
+            if (ed.getComponent(parent.getId(), EntityTransform.class) != null) {
+                transforms.addFirst(ed.getComponent(parent.getId(), EntityTransform.class));
+            }
+            parent = ed.getComponent(parent.getId(), Parent.class);
+        }
+        Transform world = new Transform();
+        for (var t : transforms) {
+            world.getTranslation().addLocal(world.getRotation().mult(t.getTranslation()));
+            world.getRotation().multLocal(t.getRotation());
         }
         return world;
     }

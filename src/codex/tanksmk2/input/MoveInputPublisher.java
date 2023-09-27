@@ -4,16 +4,10 @@
  */
 package codex.tanksmk2.input;
 
-import codex.tanksmk2.components.AimDirection;
-import codex.tanksmk2.components.ControllerHardwareIndex;
 import codex.tanksmk2.components.TargetMove;
-import codex.tanksmk2.util.GameUtils;
-import com.jme3.input.InputManager;
-import com.jme3.input.Joystick;
-import com.jme3.input.RawInputListener;
-import com.jme3.math.Vector2f;
+import com.jme3.math.Vector3f;
 import com.simsilica.es.Entity;
-import com.simsilica.lemur.Axis;
+import com.simsilica.es.EntityData;
 import com.simsilica.lemur.input.AnalogFunctionListener;
 import com.simsilica.lemur.input.FunctionId;
 import com.simsilica.lemur.input.InputMapper;
@@ -25,50 +19,55 @@ import com.simsilica.lemur.input.StateFunctionListener;
  * 
  * @author codex
  */
-public class GamepadPublisher implements PlayerInputPublisher,
+public class MoveInputPublisher implements PlayerInputPublisher,
         StateFunctionListener, AnalogFunctionListener {
 
+    public static final String ID = MoveInputPublisher.class.getName();
+    
+    private final EntityData ed;
     private final InputMapper inputMapper;
     private final Entity entity;
-    private TankInputFunctions functions;
+    private final TankInputFunctions functions;
+    private final Vector3f input = new Vector3f();
     
-    public GamepadPublisher(InputMapper im, Entity entity) {
+    public MoveInputPublisher(EntityData ed, InputMapper im, Entity entity, TankInputFunctions functions) {
+        this.ed = ed;
         this.inputMapper = im;
         this.entity = entity;
-        //joystick = inputManager.getJoysticks()[entity.get(ControllerHardwareIndex.class).getIndex()];
+        this.functions = functions;
     }
     
     @Override
     public void onEnable() {
-        inputMapper.activateGroup(functions.getGroupName());
+        //inputMapper.activateGroup(functions.getGroupName());
         inputMapper.addAnalogListener(this, functions.getFunctions());
     }
     @Override
     public void onDisable() {
-        inputMapper.deactivateGroup(functions.getGroupName());
+        //inputMapper.deactivateGroup(functions.getGroupName());
         inputMapper.removeAnalogListener(this, functions.getFunctions());
+    }
+    @Override
+    public void update(float tpf) {
+        if (!ed.getComponent(entity.getId(), TargetMove.class).getDirection().equals(input)) {
+            ed.setComponent(entity.getId(), new TargetMove(input));
+        }
+        input.set(Vector3f.ZERO);
     }
     @Override
     public void valueChanged(FunctionId func, InputState value, double tpf) {}
     @Override
     public void valueActive(FunctionId func, double value, double tpf) {
         if (func == functions.getMoveX()) {
-            PlayerInputPublisher.setTankMoveDirection(entity, Axis.X, (float)value);
+            input.setX((float)value);
         }
         else if (func == functions.getMoveY()) {
-            PlayerInputPublisher.setTankMoveDirection(entity, Axis.Z, (float)value);
-        }
-        else if (func == functions.getAimX()) {
-            PlayerInputPublisher.setTankAimDirection(entity, Axis.X, (float)value);
-        }
-        else if (func == functions.getAimY()) {
-            PlayerInputPublisher.setTankAimDirection(entity, Axis.Z, (float)value);
-        }
-        else if (func == functions.getShoot()) {
-            // publish shoot event
+            input.setZ((float)value);
         }
     }
-    
-    
+    @Override
+    public Functions getFunctions() {
+        return functions;
+    }
     
 }
