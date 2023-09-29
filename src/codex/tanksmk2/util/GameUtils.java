@@ -5,6 +5,7 @@
 package codex.tanksmk2.util;
 
 import codex.tanksmk2.components.EntityTransform;
+import codex.tanksmk2.components.GameObject;
 import codex.tanksmk2.components.Parent;
 import com.jme3.collision.CollisionResults;
 import com.jme3.math.FastMath;
@@ -126,6 +127,16 @@ public class GameUtils {
             world.getRotation().multLocal(t.getRotation());
         }
         return world;
+    }
+    
+    /**
+     * Tests if the entity exists based on if it has a {@link GameObject} component.
+     * @param ed
+     * @param id
+     * @return 
+     */
+    public static boolean entityExists(EntityData ed, EntityId id) {
+        return ed.getComponent(id, GameObject.class) != null;
     }
     
 }

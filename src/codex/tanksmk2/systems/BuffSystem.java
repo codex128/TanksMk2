@@ -10,8 +10,9 @@ import com.simsilica.es.EntitySet;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import java.util.HashMap;
-import codex.tanksmk2.components.DeliveryTarget;
+import codex.tanksmk2.components.StatsBuff;
 import codex.tanksmk2.components.Stats;
+import com.simsilica.es.common.Decay;
 
 /**
  *
@@ -25,8 +26,9 @@ public class BuffSystem extends AbstractGameSystem {
     
     @Override
     protected void initialize() {
+        System.out.println("initialize buff system");
         ed = getManager().get(EntityData.class);
-        entities = ed.getEntities(DeliveryTarget.class, Stats.class);
+        entities = ed.getEntities(StatsBuff.class, Stats.class);
     }
     @Override
     protected void terminate() {
@@ -36,12 +38,21 @@ public class BuffSystem extends AbstractGameSystem {
     public void update(SimTime time) {
         if (entities.applyChanges()) {
             for (var e : entities) {
+                var target = e.get(StatsBuff.class);
+                if (ed.getComponent(target.getTarget(), Stats.class) == null) {
+                    // this is important for two reasons:
+                    // 1) Buffs can be applied indiscriminantly, even if entities don't end up needing them
+                    // 2) So that dead entities are not accidently revived
+                    if (target.isRemoveOnMiss()) {
+                        ed.setComponents(e.getId(), new Decay(time.getTime()));
+                    }
+                    continue;
+                }
                 var buff = e.get(Stats.class);
-                var target = e.get(DeliveryTarget.class).getTarget();
-                var stats = statsMap.get(target);
+                var stats = statsMap.get(target.getTarget());
                 if (stats == null) {
                     stats = new Stats();
-                    statsMap.put(target, stats);
+                    statsMap.put(target.getTarget(), stats);
                 }
                 for (int i = 0; i < buff.getValues().length; i++) {
                     stats.set(i, stats.get(i)+buff.get(i));

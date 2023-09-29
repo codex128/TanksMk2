@@ -19,7 +19,7 @@ import com.simsilica.lemur.input.InputState;
 public class TankInputFunctions implements Functions {
     
     private final InputDevice device;
-    private FunctionId[] funcs;
+    private FunctionId[] funcs = new FunctionId[5];
     private String group;
     
     /**
@@ -39,18 +39,20 @@ public class TankInputFunctions implements Functions {
 
     @Override
     public void initializeFunctionIds(String group) {
+        System.out.println("initialize input functions");
         funcs = new FunctionId[5];
-        funcs[0] = new FunctionId(group, "moveX");
-        funcs[1] = new FunctionId(group, "moveY");
-        funcs[2] = new FunctionId(group, "aimX");
-        funcs[3] = new FunctionId(group, "aimY");
-        funcs[4] = new FunctionId(group, "shoot");
+        funcs[0] = new FunctionId(group, group+":moveX");
+        funcs[1] = new FunctionId(group, group+":moveY");
+        funcs[2] = new FunctionId(group, group+":aimX");
+        funcs[3] = new FunctionId(group, group+":aimY");
+        funcs[4] = new FunctionId(group, group+":shoot");
         this.group = group;
     }
     @Override
     public void initializeDefaultMappings(InputMapper im) {
         //var device = InputDevice.JOYSTICK1;
         //device.button(...)
+        System.out.println("initialize default input mappings");
         if (device == null) {
             im.map(funcs[1], InputState.Positive, KeyInput.KEY_W);
             im.map(funcs[1], InputState.Negative, KeyInput.KEY_S);

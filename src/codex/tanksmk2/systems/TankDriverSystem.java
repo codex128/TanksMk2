@@ -21,12 +21,15 @@ import com.simsilica.sim.SimTime;
  */
 public class TankDriverSystem extends AbstractGameSystem {
     
+    private EntityData ed;
     private BulletSystem bullet;
     private TankContainer container;
     
     @Override
     protected void initialize() {
+        ed = getManager().get(EntityData.class);
         bullet = getSystem(BulletSystem.class, true);
+        container = new TankContainer(ed);
         container.start();
     }
     @Override

@@ -4,9 +4,9 @@
  */
 package codex.tanksmk2.systems;
 
-import codex.tanksmk2.components.DeliveryTarget;
+import codex.tanksmk2.components.StatsBuff;
 import codex.tanksmk2.components.Inventory;
-import codex.tanksmk2.components.InventoryLimit;
+import codex.tanksmk2.components.Stats;
 import codex.tanksmk2.components.Supplier;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
@@ -26,7 +26,7 @@ public class InventorySystem extends AbstractGameSystem {
     @Override
     protected void initialize() {
         ed = getManager().get(EntityData.class);
-        suppliers = ed.getEntities(DeliveryTarget.class, Supplier.class);
+        suppliers = ed.getEntities(Supplier.class);
     }
     @Override
     protected void terminate() {
@@ -41,17 +41,16 @@ public class InventorySystem extends AbstractGameSystem {
     
     private void applyIncomingSupplies(Entity e) {
         var s = e.get(Supplier.class);
-        var target = e.get(DeliveryTarget.class).getTarget();
-        var inv = ed.getComponent(target, Inventory.class);
-        var limit = ed.getComponent(target, InventoryLimit.class);
-        if (inv != null) {
-            int value = incrementInvValue(inv.get(s.getChannel()), s.getAmount());
-            if (limit != null) {
-                value = limitInvValue(value, limit.get(s.getChannel()));
-            }
-            var instance = new Inventory(inv);
-            instance.getValues()[s.getChannel()] = value;
-            ed.setComponent(target, instance);
+        var inventory = ed.getComponent(s.getTarget(), Inventory.class);
+        if (inventory != null) {
+            int value = incrementInvValue(inventory.get(s.getChannel()), s.getAmount());
+            //var limit = ed.getComponent(target, Stats.class);
+            //if (limit != null) {
+            //    value = limitInvValue(value, (int)limit.get(Stats.MAX_BULLETS+s.getChannel()));
+            //}
+            var i = new Inventory(inventory);
+            i.getValues()[s.getChannel()] = value;
+            ed.setComponent(s.getTarget(), i);
         }
         ed.removeComponent(e.getId(), Supplier.class);
     }

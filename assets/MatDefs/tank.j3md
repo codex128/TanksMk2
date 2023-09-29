@@ -1,0 +1,39 @@
+MaterialDef Tank {
+    MaterialParameters {
+        Texture2D DiffuseMap
+        Color MainColor            : 0.0 0.0 1.0 1.0
+        Color SecondaryColor       : 0.0 0.0 1.0 1.0
+        Color MainPlaceholder      : 1.0 0.0 0.0 1.0
+        Color SecondaryPlaceholder : 0.0 0.0 1.0 1.0
+        Float Similarity           : 0.001
+        Float TreadOffset1         : 0.0
+        Float TreadOffset2         : 0.0
+        Float TreadCoord1          : 0.1
+        Float TreadCoord2          : 0.2
+        Boolean UseInstancing : false
+        Int NumberOfBones
+        Matrix4Array BoneMatrices
+        FloatArray MorphWeights
+        Int NumberOfMorphTargets
+        Int NumberOfTargetsBuffers
+    }
+    Technique {
+        LightMode SinglePassAndImageBased
+        VertexShader   GLSL330 GLSL120 GLSL100 : Shaders/basicVert.vert
+        FragmentShader GLSL330 GLSL120 GLSL100 : Shaders/tank.frag
+        WorldParameters {
+            WorldViewProjectionMatrix
+            CameraPosition
+            WorldMatrix
+            WorldNormalMatrix
+            ViewProjectionMatrix
+            ViewMatrix
+        }
+        Defines {
+            USE_INSTANCING      : UseInstancing
+            NUM_BONES           : NumberOfBones
+            NUM_MORPH_TARGETS   : NumberOfMorphTargets
+            NUM_TARGETS_BUFFERS : NumberOfTargetsBuffers
+        }
+    }
+}

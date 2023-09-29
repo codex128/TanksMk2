@@ -37,7 +37,7 @@ public class TankPhysicsDriver implements ControlDriver {
         var velocity = entity.get(Velocity.class);
         if (velocity.getMagnitude() > 0) {
             body.setLinearVelocity(velocity.getVelocity());
-            entity.set(velocity.setMagnitude(0f));
+            //entity.set(velocity.setMagnitude(0f));
         }
     }
     @Override

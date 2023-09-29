@@ -19,6 +19,13 @@ public class EntityTransform implements EntityComponent {
     protected final Vector3f translation = new Vector3f();
     protected final Quaternion rotation = new Quaternion();
 
+    public EntityTransform() {}
+    public EntityTransform(Vector3f translation) {
+        this.translation.set(translation);
+    }
+    public EntityTransform(Quaternion rotation) {
+        this.rotation.set(rotation);
+    }
     public EntityTransform(Vector3f translation, Quaternion rotation) {
         this.translation.set(translation);
         this.rotation.set(rotation);

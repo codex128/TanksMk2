@@ -5,10 +5,9 @@
 package codex.tanksmk2.systems;
 
 import codex.tanksmk2.ESAppState;
-import codex.tanksmk2.components.Bone;
+import codex.tanksmk2.components.BoneInfo;
 import codex.tanksmk2.components.EntityTransform;
 import codex.tanksmk2.components.ModelInfo;
-import codex.tanksmk2.factories.ModelFactory;
 import codex.tanksmk2.util.GameUtils;
 import com.jme3.anim.SkinningControl;
 import com.jme3.app.Application;
@@ -17,6 +16,8 @@ import com.simsilica.es.Entity;
 import com.simsilica.es.EntityContainer;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntitySet;
+import codex.tanksmk2.factories.Factory;
+import codex.tanksmk2.factories.ModelFactory;
 
 /**
  *
@@ -26,18 +27,22 @@ public class ModelViewState extends ESAppState {
 
     private ModelContainer models;
     private EntitySet bones;
-    private ModelFactory factory;
+    private Factory<Spatial> factory;
     
     @Override
     protected void init(Application app) {
+        System.out.println("initialize model view state");
         models = new ModelContainer(ed);
-        bones = ed.getEntities(Bone.class, EntityTransform.class);
+        //models.start();
+        bones = ed.getEntities(BoneInfo.class, EntityTransform.class);
         if (factory == null) {
-            // todo: set default factory
+            factory = new ModelFactory(ed, assetManager);
         }
     }
     @Override
-    protected void cleanup(Application app) {}
+    protected void cleanup(Application app) {
+        //models.stop();
+    }
     @Override
     protected void onEnable() {
         models.start();
@@ -56,17 +61,18 @@ public class ModelViewState extends ESAppState {
     }
     
     private void updateBoneTransform(Entity e) {
-        var view = models.getObject(e.get(Bone.class).getModel());
+        var view = models.getObject(e.get(BoneInfo.class).getModel());
         if (view == null) return;
         var skin = view.spatial.getControl(SkinningControl.class);
         if (skin == null) return;
-        var j = skin.getArmature().getJoint(e.get(Bone.class).getBone());
+        var j = skin.getArmature().getJoint(e.get(BoneInfo.class).getBone());
         if (j == null) return;
+        // only rotation is being applied for now
         j.setLocalRotation(e.get(EntityTransform.class).getRotation());
     }
     
     protected Spatial createModel(ModelInfo info) {
-        return factory.apply(info);
+        return factory.apply(ed, info);
     }
     protected void attachModel(Spatial model) {
         rootNode.attachChild(model);
@@ -80,6 +86,7 @@ public class ModelViewState extends ESAppState {
         public ModelView(Entity entity) {
             this.entity = entity;
             spatial = createModel(entity.get(ModelInfo.class));
+            System.out.println("model attached");
             attachModel(spatial);
             update();
         }
@@ -102,6 +109,7 @@ public class ModelViewState extends ESAppState {
         
         @Override
         protected ModelView addObject(Entity entity) {
+            System.out.println("add model");
             return new ModelView(entity);
         }
         @Override

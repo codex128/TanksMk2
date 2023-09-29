@@ -4,16 +4,40 @@
  */
 package codex.tanksmk2.factories;
 
-import codex.tanksmk2.components.ModelInfo;
+import com.jme3.asset.AssetManager;
+import com.jme3.material.Material;
+import com.jme3.math.ColorRGBA;
 import com.jme3.scene.Spatial;
+import com.simsilica.es.EntityData;
 
 /**
  *
  * @author codex
  */
-public interface ModelFactory {
+public class ModelFactory implements Factory<Spatial> {
+
+    private final EntityData ed;
+    private final AssetManager assetManager;
+
+    public ModelFactory(EntityData ed, AssetManager assetManager) {
+        this.ed = ed;
+        this.assetManager = assetManager;
+    }
     
-    public Spatial apply(ModelInfo info);
-    public Spatial createModel(String name);
+    @Override
+    public Spatial load(String name) {
+        return switch (name) {
+            case "tank" -> createTank();
+            default -> null;
+        };
+    }
+    
+    private Spatial createTank() {
+        var tank = assetManager.loadModel("Models/tank/tank.j3o");
+        var mat = new Material(assetManager, "MatDefs/tank.j3md");
+        mat.setTexture("DiffuseMap", assetManager.loadTexture("Textures/tankDiffuse.png"));
+        tank.setMaterial(mat);
+        return tank;
+    }
     
 }

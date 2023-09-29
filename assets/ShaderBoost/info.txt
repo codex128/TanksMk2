@@ -1,0 +1,3 @@
+--== ShaderBoost ==--
+
+Shader utilities from the Boost library.

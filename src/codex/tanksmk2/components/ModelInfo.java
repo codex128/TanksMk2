@@ -11,18 +11,20 @@ import com.simsilica.es.EntityData;
  *
  * @author codex
  */
-public class ModelInfo implements EntityComponent {
+public class ModelInfo implements InfoComponent {
     
-    private int id;
+    private final int id;
 
     public ModelInfo(int id) {
         this.id = id;
     }
     
-    public int getModelId() {
+    @Override
+    public int getId() {
         return id;
     }
-    public String getModelName(EntityData ed) {
+    @Override
+    public String getName(EntityData ed) {
         return ed.getStrings().getString(id);
     }
     @Override

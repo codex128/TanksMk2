@@ -20,7 +20,7 @@ public interface Functions {
         }
     }
     public default boolean isInitialized() {
-        return getGroupName() == null;
+        return getGroupName() != null;
     }
     public default void cleanupMappings(InputMapper im) {
         for (var f : getFunctions()) {

@@ -1,0 +1,50 @@
+
+#import "ShaderBoost/private/MappingPrivate.glsllib"
+
+mat3 tbnMatrix(vec3 normal, vec4 tangent) {
+    vec3 norm = normalize(normal);
+    vec3 tan = normalize(tangent.xyz);
+    return mat3(tan, tangent.w * cross( (norm), (tan)), norm);
+}
+/**
+ * Calculates a new texture coordinate based on normal/parallax map that will generate a parallax effect for textures.
+ * @param map      = texture to calculate from
+ * @param viewDir  = camera view direction
+ * @param texCoord = current texture coordinate
+ * @param normal   = vertex normal
+ * @param tangent  = vertex tangent
+ * @param height   = parallax effect height
+ * @param embedded = parallax data is embedded in the alpha channel of the map, as opposed to being its own texture
+ * @return new texture coordinate
+ */
+vec2 steepParallax(sampler2D map, vec3 viewDir, vec2 texCoord, vec3 normal, vec4 tangent, float height, bool embedded) {
+    mat3 tbnMat = tbnMatrix(normal, tangent);
+    return steepParallaxOffset(map, viewDir * tbnMat, texCoord, height, embedded);
+}
+vec2 classicParallax(float data, vec3 viewDir, vec2 texCoord, vec3 normal, vec4 tangent, float height) {
+    mat3 tbnMat = tbnMatrix(normal, tangent);
+    return classicParallaxOffset(data, viewDir * tbnMat, texCoord, height);
+}
+
+/**
+ * Calculates a new normal based on normal map input.
+ * normal = the actual face normal
+ * tangent = face tangent
+ * normColor = input color from the normal map
+ * type = type of normal map (1=OpenGL, -1=DirectX)
+ */
+vec3 normalMap(mat3 tbnMat, vec4 normColor, float type) {
+    vec3 norm = normalize(normColor.xyz * vec3(2.0, type * 2.0, 2.0) - vec3(1.0, type * 1.0, 1.0));
+    return normalize(tbnMat * norm);
+}
+vec3 normalMap(mat3 tbnMat, vec4 normColor) {
+    return normalMap(tbnMat, normColor, -1.0);
+}
+vec3 normalMap(vec3 normal, vec4 tangent, vec4 normColor, float type) {
+    return normalMap(tbnMatrix(normal, tangent), normColor, type);
+}
+vec3 normalMap(vec3 normal, vec4 tangent, vec4 normColor) {
+    return normalMap(tbnMatrix(normal, tangent), normColor, -1.0);
+}
+
+

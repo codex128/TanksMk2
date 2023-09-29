@@ -4,8 +4,8 @@
  */
 package codex.tanksmk2.components;
 
+import codex.j3map.J3map;
 import com.simsilica.es.EntityComponent;
-import com.simsilica.es.EntityId;
 
 /**
  *
@@ -14,11 +14,18 @@ import com.simsilica.es.EntityId;
 public class Stats implements EntityComponent {    
     
     public static final int ARMOR = 0, MOVE_SPEED = 1, BULLET_ACCEL = 2, BOUNCES = 3, FIRERATE = 4;
+    private static final StatDefault[] DEFAULTS = {
+        def("armor", 0),
+        def("move-speed", 0),
+        def("bullet-accel", 0),
+        def("bounces", 0),
+        def("firerate", 0),
+    };
     
-    private final float[] values = new float[5];
+    private final float[] values = new float[DEFAULTS.length];
 
     public Stats() {
-        setValues(0f);
+        setValues(DEFAULTS);
     }
     public Stats(float... values) {
         setValues(values);
@@ -26,15 +33,23 @@ public class Stats implements EntityComponent {
     public Stats(Stats stats) {
         setValues(stats.values);
     }
+    public Stats(J3map source) {
+        setValues(source);
+    }
     
-    private void setValues(float v) {
-        for (int i = 0; i < values.length; i++) {
-            values[i] = v;
+    private void setValues(StatDefault... defaults) {
+        for (int i = 0; i < values.length && i < defaults.length; i++) {
+            values[i] = defaults[i].value;
         }
     }
     private void setValues(float... v) {
-        for (int i = 0; i < values.length; i++) {
+        for (int i = 0; i < values.length && i < v.length; i++) {
             values[i] = v[i];
+        }
+    }
+    private void setValues(J3map source) {
+        for (int i = 0; i < values.length; i++) {
+            values[i] = source.getFloat(DEFAULTS[i].key, DEFAULTS[i].value);
         }
     }
     
@@ -49,6 +64,18 @@ public class Stats implements EntityComponent {
     }
     public float[] getValues() {
         return values;
+    }
+    
+    private static StatDefault def(String key, float value) {
+        return new StatDefault(key, value);
+    }
+    private static final class StatDefault {
+        String key;
+        float value;
+        StatDefault(String key, float value) {
+            this.key = key;
+            this.value = value;
+        }
     }
     
 }
