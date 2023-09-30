@@ -49,6 +49,7 @@ public class TankDriverSystem extends AbstractGameSystem {
         
         @Override
         protected TankPhysicsDriver addObject(Entity entity) {
+            System.out.println("add driver");
             var driver = new TankPhysicsDriver(entity);
             bullet.setControlDriver(entity.getId(), driver);
             return driver;

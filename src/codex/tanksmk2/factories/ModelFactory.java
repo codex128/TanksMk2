@@ -5,8 +5,8 @@
 package codex.tanksmk2.factories;
 
 import com.jme3.asset.AssetManager;
+import com.jme3.asset.TextureKey;
 import com.jme3.material.Material;
-import com.jme3.math.ColorRGBA;
 import com.jme3.scene.Spatial;
 import com.simsilica.es.EntityData;
 
@@ -35,7 +35,7 @@ public class ModelFactory implements Factory<Spatial> {
     private Spatial createTank() {
         var tank = assetManager.loadModel("Models/tank/tank.j3o");
         var mat = new Material(assetManager, "MatDefs/tank.j3md");
-        mat.setTexture("DiffuseMap", assetManager.loadTexture("Textures/tankDiffuse.png"));
+        mat.setTexture("DiffuseMap", assetManager.loadTexture(new TextureKey("Textures/tankDiffuse.png", false)));
         tank.setMaterial(mat);
         return tank;
     }

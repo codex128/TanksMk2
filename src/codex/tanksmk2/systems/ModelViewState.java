@@ -68,7 +68,9 @@ public class ModelViewState extends ESAppState {
         var j = skin.getArmature().getJoint(e.get(BoneInfo.class).getBone());
         if (j == null) return;
         // only rotation is being applied for now
-        j.setLocalRotation(e.get(EntityTransform.class).getRotation());
+        var transform = e.get(EntityTransform.class);
+        j.setLocalRotation(transform.getRotation());
+        e.set(transform.setTranslation(j.getLocalTranslation()));
     }
     
     protected Spatial createModel(ModelInfo info) {

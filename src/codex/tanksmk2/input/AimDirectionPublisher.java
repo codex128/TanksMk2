@@ -34,12 +34,12 @@ public class AimDirectionPublisher implements PlayerInputPublisher, AnalogFuncti
     @Override
     public void onEnable() {
         //im.activateGroup(group);
-        im.addAnalogListener(this, functions.getFunctions());
+        im.addAnalogListener(this, functions.getAimX(), functions.getAimY());
     }
     @Override
     public void onDisable() {
         //im.deactivateGroup(group);
-        im.removeAnalogListener(this, functions.getFunctions());
+        im.removeAnalogListener(this, functions.getAimX(), functions.getAimY());
     }
     @Override
     public void update(float tpf) {

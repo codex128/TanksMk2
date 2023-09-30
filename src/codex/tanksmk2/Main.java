@@ -1,5 +1,10 @@
 package codex.tanksmk2;
 
+import codex.j3map.J3mapFactory;
+import codex.j3map.processors.BooleanProcessor;
+import codex.j3map.processors.FloatProcessor;
+import codex.j3map.processors.IntegerProcessor;
+import codex.j3map.processors.StringProcessor;
 import codex.tanksmk2.bullet.TransformPublisher;
 import codex.tanksmk2.systems.BuffSystem;
 import codex.tanksmk2.systems.CameraState;
@@ -17,7 +22,8 @@ import com.jme3.app.DebugKeysAppState;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.StatsAppState;
 import com.jme3.asset.AssetManager;
-import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
+import com.jme3.bullet.collision.shapes.BoxCollisionShape;
+import com.jme3.bullet.util.CollisionShapeFactory;
 import com.jme3.input.InputManager;
 import com.jme3.light.DirectionalLight;
 import com.jme3.math.Vector3f;
@@ -68,6 +74,14 @@ public class Main extends SimpleApplication {
         
         GuiGlobals.initialize(this);
         
+        assetManager.registerLoader(J3mapFactory.class, "stats", "j3map");
+        J3mapFactory.registerAllProcessors(
+            BooleanProcessor.class,
+            StringProcessor.class,
+            IntegerProcessor.class,
+            FloatProcessor.class
+        );
+        
         systems = stateManager.getState(GameSystemsState.class);
         ed = systems.register(EntityData.class, new DefaultEntityData());
         systems.register(AssetManager.class, assetManager);
@@ -77,7 +91,8 @@ public class Main extends SimpleApplication {
         systems.addSystem(new DecaySystem());
         
         var shapes = systems.register(CollisionShapes.class, new DefaultCollisionShapes(ed));
-        shapes.register(ShapeInfo.create("tank", ed), new CapsuleCollisionShape(1f, 2f));
+        shapes.register(ShapeInfo.create("tank", ed), CollisionShapeFactory.createDynamicMeshShape(assetManager.loadModel("Models/tank/tankCollisionShape.j3o")));
+        shapes.register(ShapeInfo.create("floor", ed), new BoxCollisionShape(20f, .1f, 20f));
         
         bullet = new BulletSystem();
         bullet.addPhysicsObjectListener(new TransformPublisher(ed));

@@ -46,7 +46,7 @@ public class TankRotationSystem extends AbstractGameSystem {
         entities.applyChanges();
         for (var e : entities) {
             if (rotateTo(e, e.get(TargetMove.class).getDirection(), time)) {
-                ed.setComponents(e.getId(), new TankMoveDirection(e.get(TargetMove.class).getDirection()));
+                ed.setComponents(e.getId(), new TankMoveDirection(getDriveDirection(e)));
             }
             else {
                 ed.setComponent(e.getId(), new TankMoveDirection(Vector3f.ZERO));
@@ -56,19 +56,21 @@ public class TankRotationSystem extends AbstractGameSystem {
     
     private boolean rotateTo(Entity e, Vector3f direction, SimTime time) {
         final float bias = -0.2f;
-        final float threshold = FastMath.PI*0.5f;
+        final float threshold = FastMath.PI*0.2f;
         Vector3f current = getDriveDirection(e);
         if (current.dot(direction) < bias) {
             e.set(e.get(Drive.class).reverse());
             return false;
         }
+        float left = FastMath.sign(direction.cross(Vector3f.UNIT_Y).dot(current));
         float angle = current.angleBetween(direction);
         double turn = e.get(TurnSpeed.class).getSpeed()*time.getTpf();
+        // which way: left or right?
         if (angle > turn) {
-            rotate(e, (float)turn, Vector3f.UNIT_Y);
+            rotate(e, (float)turn*left, Vector3f.UNIT_Y);
         }
         else {
-            e.set(e.get(EntityTransform.class).setRotation(direction, Vector3f.UNIT_Y));
+            //e.set(e.get(EntityTransform.class).setRotation(direction.multLocal(e.get(Drive.class).asNumber()), Vector3f.UNIT_Y));
         }
         return angle < threshold;
     }

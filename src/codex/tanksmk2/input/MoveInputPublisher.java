@@ -40,16 +40,17 @@ public class MoveInputPublisher implements PlayerInputPublisher,
     @Override
     public void onEnable() {
         //inputMapper.activateGroup(functions.getGroupName());
-        inputMapper.addAnalogListener(this, functions.getFunctions());
+        inputMapper.addAnalogListener(this, functions.getMoveX(), functions.getMoveY());
     }
     @Override
     public void onDisable() {
         //inputMapper.deactivateGroup(functions.getGroupName());
-        inputMapper.removeAnalogListener(this, functions.getFunctions());
+        inputMapper.removeAnalogListener(this, functions.getMoveX(), functions.getMoveY());
     }
     @Override
     public void update(float tpf) {
-        if (!ed.getComponent(entity.getId(), TargetMove.class).getDirection().equals(input)) {
+        var target = ed.getComponent(entity.getId(), TargetMove.class);
+        if (target == null || !target.getDirection().equals(input)) {
             ed.setComponent(entity.getId(), new TargetMove(input));
         }
         input.set(Vector3f.ZERO);

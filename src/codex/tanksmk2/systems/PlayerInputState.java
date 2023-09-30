@@ -33,15 +33,15 @@ public class PlayerInputState extends ESAppState {
         
         System.out.println("initialize player input state");
         
-        publishers = new InputPublisherContainer(ed);
-        publishers.start();
-        
         // Create basic keyboard functions for the first player to join.
         // Note: "first player to join" is not necessarily player 1.
         var f = TankInputFunctions.forKeyboard();
         f.initialize(inputMapper);
         f.initializeDefaultMappings(inputMapper);
-        functions.put(new PlayerId(1), f);
+        functions.put(new PlayerId(0), f);
+        
+        publishers = new InputPublisherContainer(ed);
+        publishers.start();
         
     }
     @Override
@@ -97,7 +97,7 @@ public class PlayerInputState extends ESAppState {
                 }
                 case InputChannel.AIM -> {
                     if (funcs.getDevice() == null) {
-                        return new MouseDirectionPublisher(ed, inputManager, inputMapper, entity, funcs, cam);
+                        return new MouseDirectionPublisher(ed, inputManager, entity, funcs, cam);
                     }
                     else {
                         return new AimDirectionPublisher(ed, inputMapper, entity, funcs);

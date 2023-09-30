@@ -26,6 +26,14 @@ public class CameraId implements EntityComponent {
     public String toString() {
         return "CameraId{" + "id=" + id + '}';
     }
+    @Override
+    public int hashCode() {
+        return id;
+    }
+    @Override
+    public boolean equals(Object obj) {
+        return this == obj || (obj != null && getClass() == obj.getClass() && this.id == ((CameraId)obj).id);
+    }
     
     public static CameraId create() {
         return new CameraId(nextId++);

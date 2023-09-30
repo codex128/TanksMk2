@@ -40,13 +40,17 @@ public class CameraState extends ESAppState {
     protected void onDisable() {}    
     @Override
     public void update(float tpf) {
-        if (entities.applyChanges()) {
+        entities.applyChanges();
+        //if (entities.applyChanges()) {
             resetHolderAccess();
             for (var e : entities) {
                 updateHolderAccess(e);
             }
+            //for (var e : entities.getChangedEntities()) {
+            //    updateHolderAccess(e);
+            //}
             updateCameraTransforms();
-        }
+        //}
     }
     
     private void resetHolderAccess() {
@@ -64,10 +68,12 @@ public class CameraState extends ESAppState {
         }
     }
     private void updateCameraTransforms() {
+        System.out.println("updating camera transforms");
         for (var h : cameras.values()) if (h.entity != null) {
             var transform = h.entity.get(EntityTransform.class);
             h.camera.setLocation(transform.getTranslation());
             h.camera.setRotation(transform.getRotation());
+            System.out.println("camera set to holder transform");
         }
     }
     

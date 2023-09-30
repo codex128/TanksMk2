@@ -10,7 +10,9 @@ import codex.tanksmk2.systems.CameraState;
 import com.jme3.asset.AssetManager;
 import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
+import com.simsilica.bullet.Mass;
 import com.simsilica.bullet.ShapeInfo;
+import com.simsilica.bullet.SpawnPosition;
 import com.simsilica.es.EntityData;
 import com.simsilica.sim.AbstractGameSystem;
 
@@ -42,13 +44,15 @@ public class LevelSystem extends AbstractGameSystem {
         var pTurret = ed.createEntity();
         var pGun = ed.createEntity();
         var pBasicStats = ed.createEntity();
-        //var source = (J3map)assetManager.loadAsset("Properties/tank.stats");
+        var source = (J3map)assetManager.loadAsset("Properties/tank.stats");
         ed.setComponents(player,
             new GameObject("player"),
             scene,
             pId,
             ModelInfo.create("tank", ed),
             ShapeInfo.create("tank", ed),
+            new Mass(2000f),
+            new SpawnPosition(new Vector3f()),
             new EntityTransform(),
             new Stats(),
             new Inventory(),
@@ -62,7 +66,7 @@ public class LevelSystem extends AbstractGameSystem {
             new BoneInfo(player, "base"),
             new EntityTransform(),
             new InputChannel(InputChannel.MOVE),
-            new TurnSpeed(0.01f),
+            new TurnSpeed(1f),
             new Drive(true),
             new Pipeline(player, TankMoveDirection.class) // copies the velocity component over to the main player entity
         );
@@ -84,7 +88,7 @@ public class LevelSystem extends AbstractGameSystem {
         ed.setComponents(pBasicStats,
             new GameObject("base-stats-buff"),
             new Parent(player),
-            new Stats(),
+            new Stats(source),
             new StatsBuff(player)
         );
         
@@ -96,6 +100,14 @@ public class LevelSystem extends AbstractGameSystem {
                 new Vector3f(-10, 10, -10),
                 new Quaternion().lookAt(new Vector3f(1, -1, 1), Vector3f.UNIT_Y)),
             new CameraPriority()
+        );
+        
+        var floor = ed.createEntity();
+        ed.setComponents(floor,
+            new GameObject("physics-floor"),
+            ShapeInfo.create("floor", ed),
+            new Mass(0f),
+            new SpawnPosition(new Vector3f(0f, -1f, 0f))
         );
     
     }

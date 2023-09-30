@@ -26,18 +26,17 @@ public class MouseDirectionPublisher implements PlayerInputPublisher {
     
     private final EntityData ed;
     private final InputManager inputManager;
-    private final InputMapper inputMapper;
     private final Entity entity;
     private final Camera camera;
-    private TankInputFunctions functions;
+    private final TankInputFunctions functions;
     private Ray pickRay;
     private final Transform lastCamTransform = new Transform();
     private final Vector2f lastCursorPosition = new Vector2f();
 
-    public MouseDirectionPublisher(EntityData ed, InputManager inputManager, InputMapper inputMapper, Entity entity, TankInputFunctions functions, Camera camera) {
+    public MouseDirectionPublisher(EntityData ed, InputManager inputManager, Entity entity,
+            TankInputFunctions functions, Camera camera) {
         this.ed = ed;
         this.inputManager = inputManager;
-        this.inputMapper = inputMapper;
         this.entity = entity;
         this.functions = functions;
         this.camera = camera;
@@ -52,11 +51,11 @@ public class MouseDirectionPublisher implements PlayerInputPublisher {
         if (updatePickRay()) {
             var transform = GameUtils.getWorldTransform(ed, entity.getId());
             var intersection = new Vector3f();
-            if (pickRay.intersectsWherePlane(new Plane(transform.getTranslation(), Vector3f.UNIT_Y), intersection)) {
+            if (pickRay.intersectsWherePlane(new Plane(Vector3f.UNIT_Y, transform.getTranslation()), intersection)) {
                 ed.setComponent(entity.getId(), new LookAt(intersection.subtractLocal(transform.getTranslation()).normalizeLocal()));
             }
         }
-    }    
+    }
     @Override
     public Functions getFunctions() {
         return functions;

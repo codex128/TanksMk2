@@ -17,7 +17,7 @@ public class TargetMove implements EntityComponent {
     
     public TargetMove() {}
     public TargetMove(Vector3f direction) {
-        this.direction.set(direction);
+        this.direction.set(direction).normalizeLocal();
     }
 
     public Vector3f getDirection() {

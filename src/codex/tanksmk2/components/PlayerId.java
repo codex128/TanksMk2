@@ -26,6 +26,14 @@ public class PlayerId implements EntityComponent {
     public String toString() {
         return "Player{" + "number=" + id + '}';
     }
+    @Override
+    public int hashCode() {
+        return id;
+    }
+    @Override
+    public boolean equals(Object obj) {
+        return this == obj || (obj != null && getClass() == obj.getClass() && this.id == ((PlayerId)obj).id);
+    }
     
     public static PlayerId create() {
         return new PlayerId(nextId++);
