@@ -4,7 +4,8 @@
  */
 package codex.tanksmk2.bullet;
 
-import codex.tanksmk2.components.EntityTransform;
+import codex.tanksmk2.components.Position;
+import codex.tanksmk2.components.Rotation;
 import com.simsilica.bullet.EntityPhysicsObject;
 import com.simsilica.bullet.PhysicsObjectListener;
 import com.simsilica.es.EntityData;
@@ -31,8 +32,10 @@ public class TransformPublisher implements PhysicsObjectListener {
     public void added(EntityPhysicsObject object) {}
     @Override
     public void updated(EntityPhysicsObject object) {
-        var transform = new EntityTransform(object.getPhysicsLocation(null), object.getPhysicsRotation(null));
-        ed.setComponent(object.getId(), transform);
+        ed.setComponents(object.getId(),
+            new Position(object.getPhysicsLocation(null)),
+            new Rotation(object.getPhysicsRotation(null))
+        );
     }
     @Override
     public void removed(EntityPhysicsObject object) {}

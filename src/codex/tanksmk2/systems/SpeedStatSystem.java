@@ -4,13 +4,11 @@
  */
 package codex.tanksmk2.systems;
 
-import codex.tanksmk2.components.Direction;
 import codex.tanksmk2.components.Speed;
 import codex.tanksmk2.components.Stats;
-import codex.tanksmk2.components.TankMoveDirection;
+import codex.tanksmk2.util.EntityMaintainer;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
-import com.simsilica.es.EntitySet;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 
@@ -18,15 +16,15 @@ import com.simsilica.sim.SimTime;
  *
  * @author codex
  */
-public class TankMovementSystem extends AbstractGameSystem {
+public class SpeedStatSystem extends AbstractGameSystem {
 
     private EntityData ed;
-    private EntitySet entities;
+    private SpeedUpdate entities;
     
     @Override
     protected void initialize() {
         ed = getManager().get(EntityData.class);
-        entities = ed.getEntities(TankMoveDirection.class, Stats.class);
+        entities = new SpeedUpdate(ed);
     }
     @Override
     protected void terminate() {
@@ -34,17 +32,20 @@ public class TankMovementSystem extends AbstractGameSystem {
     }
     @Override
     public void update(SimTime time) {
-        if (entities.applyChanges()) {
-            entities.getAddedEntities().forEach(e -> update(e));
-            entities.getChangedEntities().forEach(e -> update(e));
-        }
+        entities.update(time);
     }
     
-    private void update(Entity e) {
-        ed.setComponents(e.getId(),
-            new Direction(e.get(TankMoveDirection.class).getDirection()),
-            new Speed(e.get(Stats.class).get(Stats.MOVE_SPEED))
-        );
+    private class SpeedUpdate extends EntityMaintainer {
+
+        public SpeedUpdate(EntityData ed) {
+            super(ed, Speed.class, Stats.class);
+        }
+        
+        @Override
+        public void update(Entity e, SimTime time) {
+            e.set(new Speed(e.get(Stats.class).get(Stats.MOVE_SPEED)));
+        }
+        
     }
     
 }

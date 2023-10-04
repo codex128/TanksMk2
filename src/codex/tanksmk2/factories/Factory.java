@@ -4,8 +4,8 @@
  */
 package codex.tanksmk2.factories;
 
-import codex.tanksmk2.components.ModelInfo;
 import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
 
 /**
  *
@@ -14,9 +14,9 @@ import com.simsilica.es.EntityData;
  */
 public interface Factory <T> {
     
-    public default T apply(EntityData ed, ModelInfo info) {
-        return load(info.getName(ed));
+    public default T apply(EntityData ed, EntityId customer, Prefab prefab) {
+        return load(customer, prefab.getName(ed));
     }
-    public T load(String name);
+    public T load(EntityId customer, String name);
     
 }

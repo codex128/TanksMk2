@@ -36,11 +36,8 @@ public class FirerateSystem extends AbstractGameSystem {
         for (var e : entities) {
             var rate = e.get(Firerate.class);
             var trigger = e.get(Trigger.class);
-            if (trigger.get(Trigger.FIRERATE) != rate.isComplete()) {
-                e.set(trigger.set(Trigger.FIRERATE, rate.isComplete()));
-            }
-            if (rate.getValue() > 0) {
-                e.set(rate.increment(time.getTpf()));
+            if (trigger.get(Trigger.FIRERATE) != rate.isComplete(time)) {
+                e.set(trigger.set(Trigger.FIRERATE, rate.isComplete(time)));
             }
         }
     }

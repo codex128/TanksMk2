@@ -49,5 +49,24 @@ public class Inventory implements EntityComponent {
     public int[] getValues() {
         return values;
     }
+    public boolean isExhausted(int i) {
+        return values[i] == 0;
+    }
+    
+    public Inventory use(int i, int n) {
+        if (n < 0) return add(i, -n);
+        int v = values[i]-n;
+        if (v >= 0) {
+            return new Inventory(i, v, this);
+        }
+        return this;
+    }
+    public Inventory add(int i, int n) {
+        if (n < 0) return use(i, -n);
+        if (values[i] >= 0) {
+            return new Inventory(i, values[i]+n, this);
+        }
+        return this;
+    }
     
 }

@@ -4,9 +4,9 @@
  */
 package codex.tanksmk2.systems;
 
-import codex.tanksmk2.components.EntityTransform;
 import codex.tanksmk2.components.LookAt;
 import codex.tanksmk2.components.AxisConstraint;
+import codex.tanksmk2.components.Rotation;
 import codex.tanksmk2.util.GameUtils;
 import com.jme3.math.Vector3f;
 import com.simsilica.es.Entity;
@@ -29,7 +29,7 @@ public class TrackingSystem extends AbstractGameSystem {
     @Override
     protected void initialize() {
         ed = getManager().get(EntityData.class);
-        entities = ed.getEntities(EntityTransform.class, LookAt.class);
+        entities = ed.getEntities(Rotation.class, LookAt.class);
     }
     @Override
     protected void terminate() {
@@ -52,10 +52,10 @@ public class TrackingSystem extends AbstractGameSystem {
         }
     }
     private void updateLocal(Entity e) {
-        e.set(e.get(EntityTransform.class).setRotation(getConstraint(e.getId()).applyLocal(e.get(LookAt.class).getVector().normalize(), 0f), Vector3f.UNIT_Y));
+        e.set(new Rotation(getConstraint(e.getId()).applyLocal(e.get(LookAt.class).getVector().normalize(), 0f), Vector3f.UNIT_Y));
     }
     private void updateWorld(Entity e) {
-        e.set(e.get(EntityTransform.class).setRotation(getConstraint(e.getId()).applyLocal(e.get(LookAt.class).getVector().subtract(GameUtils.getWorldTransform(ed, e).getTranslation()).normalizeLocal(), 0f), Vector3f.UNIT_Y));
+        e.set(new Rotation(getConstraint(e.getId()).applyLocal(e.get(LookAt.class).getVector().subtract(GameUtils.getWorldTransform(ed, e).getTranslation()).normalizeLocal(), 0f), Vector3f.UNIT_Y));
     }
     
     private AxisConstraint getConstraint(EntityId id) {

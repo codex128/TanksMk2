@@ -9,6 +9,7 @@ import com.jme3.asset.TextureKey;
 import com.jme3.material.Material;
 import com.jme3.scene.Spatial;
 import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
 
 /**
  *
@@ -25,7 +26,7 @@ public class ModelFactory implements Factory<Spatial> {
     }
     
     @Override
-    public Spatial load(String name) {
+    public Spatial load(EntityId customer, String name) {
         return switch (name) {
             case "tank" -> createTank();
             default -> null;

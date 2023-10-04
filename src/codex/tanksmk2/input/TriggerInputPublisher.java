@@ -4,7 +4,7 @@
  */
 package codex.tanksmk2.input;
 
-import codex.tanksmk2.components.Trigger;
+import codex.tanksmk2.components.TriggerInput;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.lemur.input.FunctionId;
@@ -16,14 +16,14 @@ import com.simsilica.lemur.input.StateFunctionListener;
  *
  * @author codex
  */
-public class ShootInputPublisher implements PlayerInputPublisher , StateFunctionListener { 
+public class TriggerInputPublisher implements PlayerInputPublisher, StateFunctionListener { 
     
     private final EntityData ed;
     private final Entity entity;
     private final InputMapper inputMapper;
     private final TankInputFunctions functions;
 
-    public ShootInputPublisher(EntityData ed, Entity entity, InputMapper inputMapper, TankInputFunctions functions) {
+    public TriggerInputPublisher(EntityData ed, Entity entity, InputMapper inputMapper, TankInputFunctions functions) {
         this.ed = ed;
         this.entity = entity;
         this.inputMapper = inputMapper;
@@ -46,14 +46,7 @@ public class ShootInputPublisher implements PlayerInputPublisher , StateFunction
     }
     @Override
     public void valueChanged(FunctionId func, InputState value, double tpf) {
-        setTriggerFlag(value == InputState.Positive);
-    }
-    
-    private void setTriggerFlag(boolean flag) {
-        var trigger = ed.getComponent(entity.getId(), Trigger.class);
-        if (trigger != null) {
-            ed.setComponent(entity.getId(), trigger.set(Trigger.INPUT, flag));
-        }
+        ed.setComponent(entity.getId(), new TriggerInput(value != InputState.Off));
     }
     
 }

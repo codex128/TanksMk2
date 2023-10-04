@@ -53,7 +53,8 @@ public class LevelSystem extends AbstractGameSystem {
             ShapeInfo.create("tank", ed),
             new Mass(2000f),
             new SpawnPosition(new Vector3f()),
-            new EntityTransform(),
+            new Position(),
+            new Rotation(),
             new Stats(),
             new Inventory(),
             new EquipedGuns(pGun)
@@ -64,7 +65,7 @@ public class LevelSystem extends AbstractGameSystem {
             new Parent(player),
             pId, // note: player id is required for recieving inputs
             new BoneInfo(player, "base"),
-            new EntityTransform(),
+            new Rotation(),
             new InputChannel(InputChannel.MOVE),
             new TurnSpeed(1f),
             new Drive(true),
@@ -75,15 +76,15 @@ public class LevelSystem extends AbstractGameSystem {
             new Parent(player),
             pId,
             new BoneInfo(player, "turret"),
-            new EntityTransform(),
+            new Rotation(),
             new InputChannel(InputChannel.AIM)
         );
         ed.setComponents(pGun,
             new GameObject("tank-gun"),
             new Parent(pTurret),
             pId,
-            //new BoneInfo(player, "gun"),
-            new EntityTransform()
+            new BoneInfo(player, "gun"),
+            new Rotation()
         );
         ed.setComponents(pBasicStats,
             new GameObject("base-stats-buff"),
@@ -96,9 +97,8 @@ public class LevelSystem extends AbstractGameSystem {
         ed.setComponents(camera,
             new GameObject("player-camera"),
             CameraState.APP_CAMERA,
-            new EntityTransform(
-                new Vector3f(-10, 10, -10),
-                new Quaternion().lookAt(new Vector3f(1, -1, 1), Vector3f.UNIT_Y)),
+            new Position(-10, 10, -10),
+            new Rotation(new Vector3f(1, -1, 1), Vector3f.UNIT_Y),
             new CameraPriority()
         );
         

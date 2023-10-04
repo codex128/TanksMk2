@@ -4,9 +4,7 @@
  */
 package codex.tanksmk2.systems;
 
-import codex.tanksmk2.components.StatsBuff;
 import codex.tanksmk2.components.Inventory;
-import codex.tanksmk2.components.Stats;
 import codex.tanksmk2.components.Supplier;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
@@ -44,10 +42,6 @@ public class InventorySystem extends AbstractGameSystem {
         var inventory = ed.getComponent(s.getTarget(), Inventory.class);
         if (inventory != null) {
             int value = incrementInvValue(inventory.get(s.getChannel()), s.getAmount());
-            //var limit = ed.getComponent(target, Stats.class);
-            //if (limit != null) {
-            //    value = limitInvValue(value, (int)limit.get(Stats.MAX_BULLETS+s.getChannel()));
-            //}
             var i = new Inventory(inventory);
             i.getValues()[s.getChannel()] = value;
             ed.setComponent(s.getTarget(), i);
@@ -56,11 +50,7 @@ public class InventorySystem extends AbstractGameSystem {
     }
     private int incrementInvValue(int value, int n) {
         if (value < 0) return value;
-        else return value+n;
-    }
-    private int limitInvValue(int value, int max) {
-        if (max < 0 || value < 0) return value;
-        else return Math.min(value, max);
+        else return Math.max(value+n, 0);
     }
     
 }

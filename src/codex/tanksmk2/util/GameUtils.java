@@ -4,9 +4,7 @@
  */
 package codex.tanksmk2.util;
 
-import codex.tanksmk2.components.EntityTransform;
-import codex.tanksmk2.components.GameObject;
-import codex.tanksmk2.components.Parent;
+import codex.tanksmk2.components.*;
 import com.jme3.collision.CollisionResults;
 import com.jme3.math.FastMath;
 import com.jme3.math.Quaternion;
@@ -48,6 +46,12 @@ public class GameUtils {
             case Y -> new Vector3f(vector.x, value, vector.z);
             case Z -> new Vector3f(vector.x, vector.y, value);
         };
+    }
+    public static Vector3f ricochet(Vector3f vector, Vector3f normal) {
+        return normal.mult(normal.dot(vector)*-2).addLocal(vector).normalizeLocal();
+    }
+    public static Vector3f asVelocity(Entity entity) {
+        return new Vector3f(entity.get(Direction.class).getDirection()).multLocal(entity.get(Speed.class).getSpeed());
     }
     
     /**
@@ -95,10 +99,18 @@ public class GameUtils {
     }
     
     public static Transform getWorldTransform(EntityData ed, EntityId id) {
-        var transforms = new LinkedList<EntityTransform>();
+        var transforms = new LinkedList<Transform>();
         while (id != null) {
-            if (ed.getComponent(id, EntityTransform.class) != null) {
-                transforms.addFirst(ed.getComponent(id, EntityTransform.class));
+            var position = ed.getComponent(id, Position.class);
+            var rotation = ed.getComponent(id, Rotation.class);
+            if (position != null || rotation != null) {
+                transforms.addFirst(new Transform());
+                if (position != null) {
+                    transforms.getFirst().setTranslation(position.getPosition());
+                }
+                if (rotation != null) {
+                    transforms.getFirst().setRotation(rotation.getRotation());
+                }
             }
             var p = ed.getComponent(id, Parent.class);
             if (p == null) break;
@@ -112,21 +124,10 @@ public class GameUtils {
         return world;
     }
     public static Transform getWorldTransform(EntityData ed, Entity entity) {
-        var transforms = new LinkedList<EntityTransform>();
-        transforms.add(entity.get(EntityTransform.class));
-        var parent = ed.getComponent(entity.getId(), Parent.class);
-        while (parent != null) {
-            if (ed.getComponent(parent.getId(), EntityTransform.class) != null) {
-                transforms.addFirst(ed.getComponent(parent.getId(), EntityTransform.class));
-            }
-            parent = ed.getComponent(parent.getId(), Parent.class);
-        }
-        Transform world = new Transform();
-        for (var t : transforms) {
-            world.getTranslation().addLocal(world.getRotation().mult(t.getTranslation()));
-            world.getRotation().multLocal(t.getRotation());
-        }
-        return world;
+        // Originally, I did a slightly different operation for this method,
+        // but stuff changed and I didn't feel like maintaining an extra, almost
+        // identical method. So, here is an almost useless method.
+        return getWorldTransform(ed, entity.getId());
     }
     
     /**

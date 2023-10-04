@@ -103,7 +103,10 @@ public class PlayerInputState extends ESAppState {
                         return new AimDirectionPublisher(ed, inputMapper, entity, funcs);
                     }
                 }
-                default -> throw new NullPointerException("Unknown input channel!");
+                case InputChannel.SHOOT -> {
+                    return new TriggerInputPublisher(ed, entity, inputMapper, funcs);
+                }
+                default -> throw new NullPointerException("Unknown input channel: "+entity.get(InputChannel.class));
             }
         }
         private void enableInputGroup(String group, boolean enable) {

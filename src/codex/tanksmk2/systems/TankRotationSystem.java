@@ -5,7 +5,7 @@
 package codex.tanksmk2.systems;
 
 import codex.tanksmk2.components.Drive;
-import codex.tanksmk2.components.EntityTransform;
+import codex.tanksmk2.components.Rotation;
 import codex.tanksmk2.components.TankMoveDirection;
 import codex.tanksmk2.components.TargetMove;
 import codex.tanksmk2.components.TurnSpeed;
@@ -31,7 +31,7 @@ public class TankRotationSystem extends AbstractGameSystem {
     protected void initialize() {
         ed = getManager().get(EntityData.class);
         entities = ed.getEntities(
-            EntityTransform.class,
+            Rotation.class,
             TargetMove.class,
             TurnSpeed.class,
             Drive.class
@@ -75,10 +75,10 @@ public class TankRotationSystem extends AbstractGameSystem {
         return angle < threshold;
     }
     private void rotate(Entity e, float angle, Vector3f axis) {
-        e.set(e.get(EntityTransform.class).addRotation(new Quaternion().fromAngleAxis(angle, axis)));
+        e.set(new Rotation(e.get(Rotation.class), new Quaternion().fromAngleAxis(angle, axis)));
     }
     private Vector3f getDriveDirection(Entity e) {
-        return e.get(EntityTransform.class).getRotation().mult(Vector3f.UNIT_Z).multLocal(e.get(Drive.class).asNumber());
+        return e.get(Rotation.class).getRotation().mult(Vector3f.UNIT_Z).multLocal(e.get(Drive.class).asNumber());
     }
     
 }

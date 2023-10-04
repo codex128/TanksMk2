@@ -5,6 +5,7 @@
 package codex.tanksmk2.components;
 
 import com.simsilica.es.EntityComponent;
+import com.simsilica.sim.SimTime;
 
 /**
  *
@@ -12,27 +13,29 @@ import com.simsilica.es.EntityComponent;
  */
 public class Firerate implements EntityComponent {
     
-    private final double value;
+    private final double start;
+    private final double length;
     
-    public Firerate() {
-        this(0);
+    public Firerate(double start, double length) {
+        this.start = start;
+        this.length = length;
     }
-    private Firerate(double value) {
-        this.value = value;
+    public Firerate(SimTime time, double length) {
+        this(time.getTimeInSeconds(), length);
     }
 
-    public double getValue() {
-        return value;
+    public double getStart() {
+        return start;
     }
-    public boolean isComplete() {
-        return value <= 0;
+    public double getLength() {
+        return length;
     }
-    public Firerate increment(double tpf) {
-        return new Firerate(value-tpf);
+    public boolean isComplete(SimTime time) {
+        return start+length >= time.getTimeInSeconds();
     }
-    @Override
-    public String toString() {
-        return "Firerate{" + "value=" + value + '}';
+    
+    public Firerate shoot(SimTime time) {
+        return new Firerate(time, length);
     }
     
 }

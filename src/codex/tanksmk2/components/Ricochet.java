@@ -4,26 +4,27 @@
  */
 package codex.tanksmk2.components;
 
+import com.jme3.math.Vector3f;
 import com.simsilica.es.EntityComponent;
 
 /**
  *
  * @author codex
  */
-public class MoveSpeed implements EntityComponent {
+public class Ricochet implements EntityComponent {
     
-    private final float speed;
-
-    public MoveSpeed(float speed) {
-        this.speed = speed;
+    private final Vector3f normal = new Vector3f();
+    
+    public Ricochet(Vector3f normal) {
+        this.normal.set(normal);
     }
 
-    public float getSpeed() {
-        return speed;
+    public Vector3f getNormal() {
+        return normal;
     }
     @Override
     public String toString() {
-        return "MoveSpeed{" + "speed=" + speed + '}';
+        return "Ricochet{" + "normal=" + normal + '}';
     }
     
 }

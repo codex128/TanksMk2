@@ -7,7 +7,8 @@ package codex.tanksmk2.systems;
 import codex.tanksmk2.ESAppState;
 import codex.tanksmk2.components.CameraId;
 import codex.tanksmk2.components.CameraPriority;
-import codex.tanksmk2.components.EntityTransform;
+import codex.tanksmk2.components.Position;
+import codex.tanksmk2.components.Rotation;
 import com.jme3.app.Application;
 import com.jme3.renderer.Camera;
 import com.simsilica.es.Entity;
@@ -27,7 +28,7 @@ public class CameraState extends ESAppState {
     
     @Override
     protected void init(Application app) {
-        entities = ed.getEntities(CameraId.class, EntityTransform.class, CameraPriority.class);
+        entities = ed.getEntities(CameraId.class, Position.class, Rotation.class, CameraPriority.class);
         cameras.put(APP_CAMERA, new CameraHolder(cam));
     }
     @Override
@@ -68,12 +69,9 @@ public class CameraState extends ESAppState {
         }
     }
     private void updateCameraTransforms() {
-        System.out.println("updating camera transforms");
         for (var h : cameras.values()) if (h.entity != null) {
-            var transform = h.entity.get(EntityTransform.class);
-            h.camera.setLocation(transform.getTranslation());
-            h.camera.setRotation(transform.getRotation());
-            System.out.println("camera set to holder transform");
+            h.camera.setLocation(h.entity.get(Position.class).getPosition());
+            h.camera.setRotation(h.entity.get(Rotation.class).getRotation());
         }
     }
     

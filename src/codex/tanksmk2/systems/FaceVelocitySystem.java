@@ -5,9 +5,10 @@
 package codex.tanksmk2.systems;
 
 import codex.tanksmk2.components.Direction;
-import codex.tanksmk2.components.Speed;
-import codex.tanksmk2.components.Stats;
-import codex.tanksmk2.components.TankMoveDirection;
+import codex.tanksmk2.components.FaceVelocity;
+import codex.tanksmk2.components.Rotation;
+import com.jme3.math.Quaternion;
+import com.jme3.math.Vector3f;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntitySet;
@@ -18,7 +19,7 @@ import com.simsilica.sim.SimTime;
  *
  * @author codex
  */
-public class TankMovementSystem extends AbstractGameSystem {
+public class FaceVelocitySystem extends AbstractGameSystem {
 
     private EntityData ed;
     private EntitySet entities;
@@ -26,7 +27,7 @@ public class TankMovementSystem extends AbstractGameSystem {
     @Override
     protected void initialize() {
         ed = getManager().get(EntityData.class);
-        entities = ed.getEntities(TankMoveDirection.class, Stats.class);
+        entities = ed.getEntities(Rotation.class, Direction.class, FaceVelocity.class);
     }
     @Override
     protected void terminate() {
@@ -41,10 +42,12 @@ public class TankMovementSystem extends AbstractGameSystem {
     }
     
     private void update(Entity e) {
-        ed.setComponents(e.getId(),
-            new Direction(e.get(TankMoveDirection.class).getDirection()),
-            new Speed(e.get(Stats.class).get(Stats.MOVE_SPEED))
-        );
+        var q = new Quaternion().lookAt(e.get(Direction.class).getDirection(), Vector3f.UNIT_Y);
+        var f = e.get(FaceVelocity.class);
+        if (f.hasRotationOffset()) {
+            q.multLocal(f.getOffset());
+        }
+        e.set(new Rotation(q));
     }
     
 }
