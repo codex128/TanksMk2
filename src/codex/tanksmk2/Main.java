@@ -108,7 +108,6 @@ public class Main extends SimpleApplication {
         systems.addSystem(new TankDriverSystem());
         systems.addSystem(new TankRotationSystem());
         systems.addSystem(new TrackingSystem());
-        systems.addSystem(new TriggerSystem());
         systems.addSystem(new ShootingSystem());
         systems.addSystem(new SpeedStatSystem());
         systems.addSystem(new FaceVelocitySystem());

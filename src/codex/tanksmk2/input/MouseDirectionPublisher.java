@@ -71,9 +71,9 @@ public class MouseDirectionPublisher implements PlayerInputPublisher {
     }
     private boolean parametersChanged() {
         return pickRay == null
-                || !inputManager.getCursorPosition().equals(lastCursorPosition)
-                || !camera.getLocation().equals(lastCamTransform.getTranslation())
-                || !camera.getRotation().equals(lastCamTransform.getRotation());
+            || !inputManager.getCursorPosition().equals(lastCursorPosition)
+            || !camera.getLocation().equals(lastCamTransform.getTranslation())
+            || !camera.getRotation().equals(lastCamTransform.getRotation());
     }
     
 }
