@@ -4,17 +4,7 @@
  */
 package codex.tanksmk2.systems;
 
-import codex.tanksmk2.components.AmmoChannel;
-import codex.tanksmk2.components.Direction;
-import codex.tanksmk2.components.EquipedGuns;
-import codex.tanksmk2.components.GameObject;
-import codex.tanksmk2.components.ModelInfo;
-import codex.tanksmk2.components.Position;
-import codex.tanksmk2.components.Rotation;
-import codex.tanksmk2.components.Speed;
-import codex.tanksmk2.components.Stats;
-import codex.tanksmk2.components.Supplier;
-import codex.tanksmk2.components.Trigger;
+import codex.tanksmk2.components.*;
 import codex.tanksmk2.util.GameUtils;
 import com.jme3.math.Vector3f;
 import com.simsilica.es.CreatedBy;
@@ -22,6 +12,7 @@ import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
+import com.simsilica.es.common.Decay;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 
@@ -30,7 +21,7 @@ import com.simsilica.sim.SimTime;
  * @author codex
  */
 public class ShootingSystem extends AbstractGameSystem {
-
+    
     private EntityData ed;
     private EntitySet entities;
     
@@ -48,20 +39,19 @@ public class ShootingSystem extends AbstractGameSystem {
         entities.applyChanges();
         for (var e : entities) {
             if (e.get(Trigger.class).allFlagsSatisfied()) {
-                shoot(e);
+                shoot(e, time);
             }
         }
     }
     
-    private void shoot(Entity e) {
+    private void shoot(Entity e, SimTime time) {
         for (var g : e.get(EquipedGuns.class).getGuns()) {
-            createBullet(e, g);
+            createBullet(e, g, time);
         }
-        
+        useResources(e);
     }
-    private EntityId createBullet(Entity owner, EntityId gun) {
+    private EntityId createBullet(Entity owner, EntityId gun, SimTime time) {
         var transform = GameUtils.getWorldTransform(ed, gun);
-        var stats = owner.get(Stats.class);
         var id = ed.createEntity();
         ed.setComponents(id,
             new GameObject("bullet"),
@@ -72,17 +62,16 @@ public class ShootingSystem extends AbstractGameSystem {
             new Position(transform.getTranslation()),
             new Rotation(transform.getRotation()),
             new Direction(transform.getRotation().mult(Vector3f.UNIT_Z)),
-            new Speed(stats.get(Stats.BULLET_ACCEL)),
-            new CreatedBy(owner.getId())
+            new Speed(1f),
+            new CreatedBy(owner.getId()),
+            new FaceVelocity(),
+            new Bounces(0),
+            new Decay(time.getTime(), time.getFutureTime(.5))
         );
         return id;
     }
-    private EntityId useInvResource(Entity entity) {
-        var supplier = ed.createEntity();
-        ed.setComponents(supplier,
-            new Supplier(entity.getId(), entity.get(AmmoChannel.class).getChannel(), -1)
-        );
-        return supplier;
+    private void useResources(Entity e) {
+        ed.setComponent(ed.createEntity(), new Supplier(e.get(AmmoChannel.class).getChannel(), -1));
     }
     
 }

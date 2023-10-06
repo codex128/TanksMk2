@@ -8,7 +8,6 @@ import codex.j3map.J3map;
 import codex.tanksmk2.components.*;
 import codex.tanksmk2.systems.CameraState;
 import com.jme3.asset.AssetManager;
-import com.jme3.math.Quaternion;
 import com.jme3.math.Vector3f;
 import com.simsilica.bullet.Mass;
 import com.simsilica.bullet.ShapeInfo;
@@ -51,20 +50,25 @@ public class LevelSystem extends AbstractGameSystem {
             pId,
             ModelInfo.create("tank", ed),
             ShapeInfo.create("tank", ed),
-            new Mass(2000f),
+            new Mass(20f),
             new SpawnPosition(new Vector3f()),
             new Position(),
             new Rotation(),
-            new Stats(),
-            new Inventory(),
-            new EquipedGuns(pGun)
-            //new InputChannel(InputChannel.SHOOT)
+            new Stats(1f),
+            new Speed(1f),
+            new Inventory(-1),
+            new EquipedGuns(pGun),
+            new InputChannel(InputChannel.SHOOT),
+            new Trigger(),
+            new Firerate(0.0, 2.0),
+            new AmmoChannel(Inventory.BULLETS)
         );
         ed.setComponents(pBase,
             new GameObject("tank-base"),
             new Parent(player),
             pId, // note: player id is required for recieving inputs
             new BoneInfo(player, "base"),
+            new ApplyBoneRotation(ApplyBoneRotation.ENTITY_TO_BONE),
             new Rotation(),
             new InputChannel(InputChannel.MOVE),
             new TurnSpeed(1f),
@@ -76,6 +80,9 @@ public class LevelSystem extends AbstractGameSystem {
             new Parent(player),
             pId,
             new BoneInfo(player, "turret"),
+            new ApplyBonePosition(ApplyBonePosition.BONE_TO_ENTITY),
+            new ApplyBoneRotation(ApplyBoneRotation.ENTITY_TO_BONE),
+            new Position(),
             new Rotation(),
             new InputChannel(InputChannel.AIM)
         );
@@ -83,7 +90,10 @@ public class LevelSystem extends AbstractGameSystem {
             new GameObject("tank-gun"),
             new Parent(pTurret),
             pId,
-            new BoneInfo(player, "gun"),
+            new BoneInfo(player, "muzzle"),
+            new ApplyBonePosition(ApplyBonePosition.BONE_TO_ENTITY),
+            new ApplyBoneRotation(ApplyBoneRotation.ENTITY_TO_BONE),
+            new Position(),
             new Rotation()
         );
         ed.setComponents(pBasicStats,

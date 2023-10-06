@@ -10,23 +10,20 @@ import com.simsilica.es.EntityComponent;
  *
  * @author codex
  */
-public class ReflectOnTouch implements EntityComponent {
+public class ExplosiveRadius implements EntityComponent {
     
-    private final boolean consume;
+    private final float radius;
 
-    public ReflectOnTouch() {
-        this(true);
+    public ExplosiveRadius(float radius) {
+        this.radius = radius;
     }
-    public ReflectOnTouch(boolean consume) {
-        this.consume = consume;
-    }
-
-    public boolean isConsumeBounce() {
-        return consume;
+    
+    public float getRadius() {
+        return radius;
     }
     @Override
     public String toString() {
-        return "ReflectOnContact{" + "consume=" + consume + '}';
+        return "ExplosiveRadius{" + "radius=" + radius + '}';
     }
     
 }

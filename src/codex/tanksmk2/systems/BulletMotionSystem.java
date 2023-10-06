@@ -5,10 +5,12 @@
 package codex.tanksmk2.systems;
 
 import codex.tanksmk2.collision.SegmentedRaytest;
-import codex.tanksmk2.components.ApplyDamageOnImpact;
+import codex.tanksmk2.components.ApplyImpulseOnImpact;
 import codex.tanksmk2.components.Bounces;
-import codex.tanksmk2.components.CreateOnTouch;
-import codex.tanksmk2.components.Defunct;
+import codex.tanksmk2.components.CreateEffectOnImpact;
+import codex.tanksmk2.components.CreateEffectOnRicochet;
+import codex.tanksmk2.components.Damage;
+import codex.tanksmk2.components.Dead;
 import codex.tanksmk2.components.Direction;
 import codex.tanksmk2.components.KillBulletOnTouch;
 import codex.tanksmk2.components.Position;
@@ -18,12 +20,13 @@ import codex.tanksmk2.components.TargetTo;
 import codex.tanksmk2.util.GameUtils;
 import com.jme3.bullet.PhysicsSpace;
 import com.jme3.bullet.PhysicsTickListener;
-import com.jme3.bullet.control.BetterCharacterControl;
 import com.jme3.math.Ray;
 import com.simsilica.bullet.BulletSystem;
 import com.simsilica.bullet.EntityPhysicsObject;
+import com.simsilica.bullet.Impulse;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import com.simsilica.es.common.Decay;
 import com.simsilica.sim.AbstractGameSystem;
@@ -38,7 +41,6 @@ public class BulletMotionSystem extends AbstractGameSystem implements PhysicsTic
     private EntityData ed;
     private BulletSystem bullet;
     private EntitySet entities;
-    private long lastUpdateTime = 0;
     
     @Override
     protected void initialize() {
@@ -53,14 +55,20 @@ public class BulletMotionSystem extends AbstractGameSystem implements PhysicsTic
         entities.release();
     }
     @Override
-    public void update(SimTime time) {
-        lastUpdateTime = time.getTime();
-    }
+    public void update(SimTime time) {}
     @Override
     public void prePhysicsTick(PhysicsSpace space, float timeStep) {
-        entities.applyChanges();
-        for (var e : entities) {
-            update(e);
+        try {
+            entities.applyChanges();
+            for (var e : entities) {
+                if (GameUtils.isDefunct(ed, e.getId())) {
+                    continue;
+                }
+                update(e);
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace(System.err);
         }
     }
     @Override
@@ -70,48 +78,50 @@ public class BulletMotionSystem extends AbstractGameSystem implements PhysicsTic
         var iterator = new SegmentedRaytest(bullet.getSpace(), constructRay(e)).iterator();
         while (iterator.hasNext()) {
             // set probe distance by velocity magnitude
-            float distance = e.get(Speed.class).getSpeed()-iterator.getDistanceTraveled();
-            if (distance <= 0) break;
-            iterator.setNextProbeDistance(distance);
+            if (e.get(Speed.class).getSpeed() > 0) {
+                float distance = e.get(Speed.class).getSpeed()-iterator.getDistanceTraveled();
+                if (distance <= 0) break;
+                iterator.setNextProbeDistance(distance);
+            }
             // perform raytest
             iterator.next();
             // process collision results
             if (iterator.collisionOccured() && iterator.getClosestResult().getCollisionObject() instanceof EntityPhysicsObject) {
+                boolean impact = false;
                 var object = (EntityPhysicsObject)iterator.getClosestResult().getCollisionObject();
                 if (ed.getComponent(object.getId(), KillBulletOnTouch.class) != null) {
-                    // The Defunct component indicates that the entity is "dead."
-                    // This should not be confused with "to be removed," but in most
-                    // cases, this component will lead to the entity being removed.
-                    // Think of Defunct as a motion to get rid of the component, with
-                    // other systems agreeing or disagreeing.
-                    ed.setComponent(e.getId(), new Defunct());
-                    break;
+                    impact = true;
                 }
                 else {
                     var reflect = ed.getComponent(object.getId(), ReflectOnTouch.class);
                     if (reflect != null) {
                         iterator.setNextDirection(GameUtils.ricochet(iterator.getNextDirection(), iterator.getClosestResult().getHitNormalLocal(null)));
-                        if (reflect.isForce()) {
+                        if (reflect.isConsumeBounce()) {
                             e.set(e.get(Bounces.class).increment());
                         }
                     }
                     if (e.get(Bounces.class).isExhausted()) {
-                        ed.setComponent(e.getId(), new Defunct());
-                        break;
+                        impact = true;
                     }
                 }
-                var applyDamage = ed.getComponent(object.getId(), ApplyDamageOnImpact.class);
-                if (applyDamage != null) {
-                    for (var t : applyDamage.getDamageType()) {
-                        var d = ed.getComponent(e.getId(), t);
-                        if (d != null) {
-                            ed.setComponents(ed.createEntity(), new TargetTo(object.getId()), d, Decay.duration(lastUpdateTime, applyDamage.getDuration()));
-                        }
+                if (impact) {
+                    var d = ed.getComponent(e.getId(), Damage.class);
+                    if (d != null) {
+                        ed.setComponents(ed.createEntity(), new TargetTo(object.getId()), d,
+                                Decay.duration(getManager().getStepTime().getTime(), getManager().getStepTime().toSimTime(0.1)));
                     }
+                    createImpactEffect(e.getId());
+                    createImpactEffect(object.getId());
+                    var impulse = ed.getComponent(e.getId(), ApplyImpulseOnImpact.class);
+                    if (impulse != null) {
+                        ed.setComponent(object.getId(), new Impulse(iterator.getNextDirection().mult(e.get(Speed.class).getSpeed())));
+                    }
+                    ed.setComponent(e.getId(), new Dead());
+                    break;
                 }
-                var create = ed.getComponent(object.getId(), CreateOnTouch.class);
-                if (create != null) {
-                    
+                else {
+                    createRicochetEffect(e.getId());
+                    createRicochetEffect(object.getId());
                 }
             }
         }
@@ -120,6 +130,19 @@ public class BulletMotionSystem extends AbstractGameSystem implements PhysicsTic
     }
     private Ray constructRay(Entity e) {
         return new Ray(e.get(Position.class).getPosition(), e.get(Direction.class).getDirection());
+    }
+    
+    private void createRicochetEffect(EntityId id) {
+        var create = ed.getComponent(id, CreateEffectOnRicochet.class);
+        if (create != null) {
+            
+        }
+    }
+    private void createImpactEffect(EntityId id) {
+        var create = ed.getComponent(id, CreateEffectOnImpact.class);
+        if (create != null) {
+            
+        }
     }
     
 }

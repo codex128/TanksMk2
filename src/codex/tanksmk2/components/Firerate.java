@@ -31,7 +31,7 @@ public class Firerate implements EntityComponent {
         return length;
     }
     public boolean isComplete(SimTime time) {
-        return start+length >= time.getTimeInSeconds();
+        return start+length <= time.getTimeInSeconds();
     }
     
     public Firerate shoot(SimTime time) {

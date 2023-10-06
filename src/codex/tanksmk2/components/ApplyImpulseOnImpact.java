@@ -10,23 +10,23 @@ import com.simsilica.es.EntityComponent;
  *
  * @author codex
  */
-public class ReflectOnTouch implements EntityComponent {
+public class ApplyImpulseOnImpact implements EntityComponent {
     
-    private final boolean consume;
+    private final float factor;
 
-    public ReflectOnTouch() {
-        this(true);
+    public ApplyImpulseOnImpact() {
+        this(1f);
     }
-    public ReflectOnTouch(boolean consume) {
-        this.consume = consume;
+    public ApplyImpulseOnImpact(float factor) {
+        this.factor = factor;
     }
 
-    public boolean isConsumeBounce() {
-        return consume;
+    public float getFactor() {
+        return factor;
     }
     @Override
     public String toString() {
-        return "ReflectOnContact{" + "consume=" + consume + '}';
+        return "ApplyImpulseOnImpact{" + "factor=" + factor + '}';
     }
     
 }

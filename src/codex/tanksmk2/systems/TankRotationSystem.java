@@ -65,7 +65,6 @@ public class TankRotationSystem extends AbstractGameSystem {
         float left = FastMath.sign(direction.cross(Vector3f.UNIT_Y).dot(current));
         float angle = current.angleBetween(direction);
         double turn = e.get(TurnSpeed.class).getSpeed()*time.getTpf();
-        // which way: left or right?
         if (angle > turn) {
             rotate(e, (float)turn*left, Vector3f.UNIT_Y);
         }
@@ -75,7 +74,7 @@ public class TankRotationSystem extends AbstractGameSystem {
         return angle < threshold;
     }
     private void rotate(Entity e, float angle, Vector3f axis) {
-        e.set(new Rotation(e.get(Rotation.class), new Quaternion().fromAngleAxis(angle, axis)));
+        e.set(e.get(Rotation.class).rotate(new Quaternion().fromAngleAxis(angle, axis)));
     }
     private Vector3f getDriveDirection(Entity e) {
         return e.get(Rotation.class).getRotation().mult(Vector3f.UNIT_Z).multLocal(e.get(Drive.class).asNumber());

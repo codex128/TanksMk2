@@ -29,12 +29,12 @@ public class Rotation implements EntityComponent {
     public Rotation(float angleX, float angleY, float angleZ) {
         this.rotation.fromAngles(angleX, angleY, angleZ);
     }
-    public Rotation(Rotation component, Quaternion rotation) {
-        rotation.set(component.rotation).multLocal(rotation);
-    }
 
     public Quaternion getRotation() {
         return rotation;
+    }
+    public Rotation rotate(Quaternion rotate) {
+        return new Rotation(rotation.mult(rotate));
     }
     @Override
     public String toString() {

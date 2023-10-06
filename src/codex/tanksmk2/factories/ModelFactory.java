@@ -29,6 +29,7 @@ public class ModelFactory implements Factory<Spatial> {
     public Spatial load(EntityId customer, String name) {
         return switch (name) {
             case "tank" -> createTank();
+            case "bullet" -> createBullet();
             default -> null;
         };
     }
@@ -39,6 +40,11 @@ public class ModelFactory implements Factory<Spatial> {
         mat.setTexture("DiffuseMap", assetManager.loadTexture(new TextureKey("Textures/tankDiffuse.png", false)));
         tank.setMaterial(mat);
         return tank;
+    }
+    private Spatial createBullet() {
+        var bullet = assetManager.loadModel("Models/bullet/bullet.j3o");
+        bullet.setLocalScale(.2f);
+        return bullet;
     }
     
 }

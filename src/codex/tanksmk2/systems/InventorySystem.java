@@ -6,6 +6,7 @@ package codex.tanksmk2.systems;
 
 import codex.tanksmk2.components.Inventory;
 import codex.tanksmk2.components.Supplier;
+import codex.tanksmk2.components.TargetTo;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntitySet;
@@ -23,8 +24,9 @@ public class InventorySystem extends AbstractGameSystem {
     
     @Override
     protected void initialize() {
+        System.out.println("initialize inventory system");
         ed = getManager().get(EntityData.class);
-        suppliers = ed.getEntities(Supplier.class);
+        suppliers = ed.getEntities(TargetTo.class, Supplier.class);
     }
     @Override
     protected void terminate() {
@@ -39,13 +41,24 @@ public class InventorySystem extends AbstractGameSystem {
     
     private void applyIncomingSupplies(Entity e) {
         var s = e.get(Supplier.class);
-        var inventory = ed.getComponent(s.getTarget(), Inventory.class);
+        var target = e.get(TargetTo.class).getTargetId();
+        var inventory = ed.getComponent(target, Inventory.class);
         if (inventory != null) {
-            int value = incrementInvValue(inventory.get(s.getChannel()), s.getAmount());
             var i = new Inventory(inventory);
-            i.getValues()[s.getChannel()] = value;
-            ed.setComponent(s.getTarget(), i);
+            switch (s.getMethod()) {
+                case Supplier.ADD:
+                    i.getValues()[s.getChannel()] = incrementInvValue(inventory.get(s.getChannel()), s.getAmount());
+                    break;
+                case Supplier.SET:
+                    i.getValues()[s.getChannel()] = s.getAmount();
+                    break;
+                default:
+                    throw new IllegalArgumentException("Supply method \""+s.getMethod()+"\" does not exist!");
+            }
+            ed.setComponent(target, i);
         }
+        // This quashes easy ways to gradually replenish
+        // resources, but is generally ok for what we need.
         ed.removeComponent(e.getId(), Supplier.class);
     }
     private int incrementInvValue(int value, int n) {

@@ -5,26 +5,25 @@
 package codex.tanksmk2.components;
 
 import com.simsilica.es.EntityComponent;
-import com.simsilica.es.EntityId;
 
 /**
  *
  * @author codex
  */
-public class MomentaryDamage implements EntityComponent {
+public class Shockwave implements EntityComponent {
     
-    private final float damage;
-    
-    public MomentaryDamage(float damage) {
-        this.damage = damage;
+    private final float power;
+
+    public Shockwave(float power) {
+        this.power = power;
     }
 
-    public float getDamage() {
-        return damage;
+    public float getPower() {
+        return power;
     }
     @Override
     public String toString() {
-        return "MomentaryDamage{" + "damage=" + damage + '}';
+        return "Shockwave{" + "power=" + power + '}';
     }
     
 }

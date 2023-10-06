@@ -19,7 +19,7 @@ public class TargetTo implements EntityComponent {
         this.target = target;
     }
     
-    public EntityId getTarget() {
+    public EntityId getTargetId() {
         return target;
     }
     @Override

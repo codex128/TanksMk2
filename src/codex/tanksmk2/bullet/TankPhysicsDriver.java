@@ -4,8 +4,8 @@
  */
 package codex.tanksmk2.bullet;
 
-import codex.tanksmk2.components.Direction;
 import codex.tanksmk2.components.Speed;
+import codex.tanksmk2.components.TankMoveDirection;
 import com.jme3.bullet.collision.PhysicsCollisionEvent;
 import com.jme3.math.Vector3f;
 import com.simsilica.bullet.ControlDriver;
@@ -35,13 +35,10 @@ public class TankPhysicsDriver implements ControlDriver {
     }
     @Override
     public void update(SimTime time, EntityRigidBody body) {
-        var direction = entity.get(Direction.class);
+        var direction = entity.get(TankMoveDirection.class);
         var speed = entity.get(Speed.class);
         if (speed.getSpeed() > 0) {
-            // This may not work properly. SetLinearVelocity was being used
-            // before, which was producing the intended behaviour, but was
-            // completely overriding other forces.
-            body.applyCentralForce(direction.getDirection().mult(speed.getSpeed()));
+            body.setLinearVelocity(direction.getDirection().mult(speed.getSpeed()).setY(body.getLastVelocity().y));
         }
     }
     @Override
@@ -52,6 +49,7 @@ public class TankPhysicsDriver implements ControlDriver {
     private void setBodyProperties() {
         body.setGravity(new Vector3f(0f, -100f, 0f));
         body.setAngularFactor(0f);
+        //body.setFriction(0f);
     }
     
 }

@@ -1,22 +1,9 @@
 package codex.tanksmk2;
 
 import codex.j3map.J3mapFactory;
-import codex.j3map.processors.BooleanProcessor;
-import codex.j3map.processors.FloatProcessor;
-import codex.j3map.processors.IntegerProcessor;
-import codex.j3map.processors.StringProcessor;
+import codex.j3map.processors.*;
 import codex.tanksmk2.bullet.TransformPublisher;
-import codex.tanksmk2.systems.BuffSystem;
-import codex.tanksmk2.systems.CameraState;
-import codex.tanksmk2.systems.InventorySystem;
-import codex.tanksmk2.systems.ModelViewState;
-import codex.tanksmk2.systems.ParentSystem;
-import codex.tanksmk2.systems.PipelineSystem;
-import codex.tanksmk2.systems.PlayerInputState;
-import codex.tanksmk2.systems.TankDriverSystem;
-import codex.tanksmk2.systems.TankMovementSystem;
-import codex.tanksmk2.systems.TankRotationSystem;
-import codex.tanksmk2.systems.TrackingSystem;
+import codex.tanksmk2.systems.*;
 import com.jme3.app.BasicProfilerState;
 import com.jme3.app.DebugKeysAppState;
 import com.jme3.app.SimpleApplication;
@@ -28,6 +15,7 @@ import com.jme3.input.InputManager;
 import com.jme3.light.DirectionalLight;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
+import com.jme3.system.AppSettings;
 import com.simsilica.bullet.BulletSystem;
 import com.simsilica.bullet.CollisionShapes;
 import com.simsilica.bullet.Contact;
@@ -56,6 +44,10 @@ public class Main extends SimpleApplication {
     
     public static void main(String[] args) {
         Main app = new Main();
+        var settings = new AppSettings(true);
+        settings.setResolution(1024, 768);
+        settings.setTitle(TITLE);
+        app.setSettings(settings);
         app.start();
     }
     
@@ -106,16 +98,21 @@ public class Main extends SimpleApplication {
         });
         systems.register(BulletSystem.class, bullet);
         
+        stateManager.attach(new PlayerInputState());
+        stateManager.attach(new CameraState());
+        
         systems.addSystem(new BuffSystem());
         systems.addSystem(new InventorySystem());
         systems.addSystem(new ParentSystem());
         systems.addSystem(new PipelineSystem());
-        stateManager.attach(new PlayerInputState());
         systems.addSystem(new TankDriverSystem());
         systems.addSystem(new TankRotationSystem());
-        systems.addSystem(new TankMovementSystem());
         systems.addSystem(new TrackingSystem());
-        stateManager.attach(new CameraState());
+        systems.addSystem(new TriggerSystem());
+        systems.addSystem(new ShootingSystem());
+        systems.addSystem(new SpeedStatSystem());
+        systems.addSystem(new FaceVelocitySystem());
+        systems.addSystem(new BulletMotionSystem());
         
         systems.addSystem(new LevelSystem());
         

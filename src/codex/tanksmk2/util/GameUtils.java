@@ -129,6 +129,18 @@ public class GameUtils {
         // identical method. So, here is an almost useless method.
         return getWorldTransform(ed, entity.getId());
     }
+    public static boolean isDefunct(EntityData ed, EntityId id) {
+        while (true) {
+            if (ed.getComponent(id, Dead.class) != null) {
+                return true;
+            }
+            var parent = ed.getComponent(id, Parent.class);
+            if (parent == null) {
+                return false;
+            }
+            id = parent.getId();
+        }
+    }
     
     /**
      * Tests if the entity exists based on if it has a {@link GameObject} component.

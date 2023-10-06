@@ -4,27 +4,28 @@
  */
 package codex.tanksmk2.components;
 
-import com.jme3.math.Vector3f;
 import com.simsilica.es.EntityComponent;
 
 /**
  *
  * @author codex
  */
-public class Direction implements EntityComponent {
+public class ApplyBoneRotation implements EntityComponent {
     
-    private final Vector3f direction;
+    public static final boolean ENTITY_TO_BONE = true, BONE_TO_ENTITY = false;
+    
+    private final boolean direction;
 
-    public Direction(Vector3f direction) {
+    public ApplyBoneRotation(boolean direction) {
         this.direction = direction;
     }
 
-    public Vector3f getDirection() {
+    public boolean isDirection() {
         return direction;
     }
     @Override
     public String toString() {
-        return "Direction{" + direction + '}';
+        return "ApplyBoneRotation{" + "direction=" + direction + '}';
     }
     
 }

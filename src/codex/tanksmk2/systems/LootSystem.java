@@ -4,10 +4,10 @@
  */
 package codex.tanksmk2.systems;
 
-import codex.tanksmk2.components.Direction;
-import codex.tanksmk2.components.Speed;
-import codex.tanksmk2.components.Stats;
-import codex.tanksmk2.components.TankMoveDirection;
+import codex.tanksmk2.components.CreateLootOnDeath;
+import codex.tanksmk2.components.Dead;
+import codex.tanksmk2.components.Loot;
+import codex.tanksmk2.factories.EntityFactory;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntitySet;
@@ -18,15 +18,15 @@ import com.simsilica.sim.SimTime;
  *
  * @author codex
  */
-public class TankMovementSystem extends AbstractGameSystem {
-
+public class LootSystem extends AbstractGameSystem {
+    
     private EntityData ed;
     private EntitySet entities;
-    
+
     @Override
     protected void initialize() {
         ed = getManager().get(EntityData.class);
-        entities = ed.getEntities(TankMoveDirection.class, Stats.class);
+        entities = ed.getEntities(Loot.class, CreateLootOnDeath.class, Dead.class);
     }
     @Override
     protected void terminate() {
@@ -35,16 +35,12 @@ public class TankMovementSystem extends AbstractGameSystem {
     @Override
     public void update(SimTime time) {
         if (entities.applyChanges()) {
-            entities.getAddedEntities().forEach(e -> update(e));
-            entities.getChangedEntities().forEach(e -> update(e));
+            entities.getAddedEntities().forEach(e -> create(e));
         }
     }
     
-    private void update(Entity e) {
-        ed.setComponents(e.getId(),
-            new Direction(e.get(TankMoveDirection.class).getDirection()),
-            new Speed(e.get(Stats.class).get(Stats.MOVE_SPEED))
-        );
+    private void create(Entity e) {
+        getManager().get(EntityFactory.class).createLoot(e.getId(), e.get(Loot.class));
     }
     
 }

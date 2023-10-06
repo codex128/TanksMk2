@@ -4,29 +4,27 @@
  */
 package codex.tanksmk2.components;
 
+import codex.tanksmk2.factories.Prefab;
 import com.simsilica.es.EntityComponent;
 
 /**
  *
  * @author codex
  */
-public class ReflectOnTouch implements EntityComponent {
+public class CreateEffectOnRicochet implements EntityComponent {
     
-    private final boolean consume;
+    private final Prefab prefab;
 
-    public ReflectOnTouch() {
-        this(true);
-    }
-    public ReflectOnTouch(boolean consume) {
-        this.consume = consume;
+    public CreateEffectOnRicochet(Prefab prefab) {
+        this.prefab = prefab;
     }
 
-    public boolean isConsumeBounce() {
-        return consume;
+    public Prefab getPrefab() {
+        return prefab;
     }
     @Override
     public String toString() {
-        return "ReflectOnContact{" + "consume=" + consume + '}';
+        return "CreateEffectOnRicochet{" + "prefab=" + prefab + '}';
     }
     
 }

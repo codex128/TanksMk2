@@ -14,8 +14,8 @@ import com.simsilica.es.EntityId;
  */
 public class BoneInfo implements EntityComponent {
     
-    private EntityId model;
-    private String bone;
+    private final EntityId model;
+    private final String bone;
 
     public BoneInfo(EntityId model, String bone) {
         this.model = model;

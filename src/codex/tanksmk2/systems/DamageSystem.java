@@ -4,9 +4,8 @@
  */
 package codex.tanksmk2.systems;
 
-import codex.tanksmk2.components.MomentaryDamage;
-import codex.tanksmk2.components.HitPoints;
-import codex.tanksmk2.components.PulseDamage;
+import codex.tanksmk2.components.Damage;
+import codex.tanksmk2.components.Health;
 import codex.tanksmk2.components.Stats;
 import codex.tanksmk2.components.TargetTo;
 import com.simsilica.es.Entity;
@@ -15,7 +14,6 @@ import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
-import java.util.LinkedList;
 
 /**
  *
@@ -24,97 +22,63 @@ import java.util.LinkedList;
 public class DamageSystem extends AbstractGameSystem {
     
     private EntityData ed;
-    private LinkedList<DamageUpdate> entities = new LinkedList<>();
+    private EntitySet entities;
     private double lastFrameSeconds = 0;
 
     @Override
     protected void initialize() {
         ed = getManager().get(EntityData.class);
-        entities.add(new MomentaryUpdate(ed));
-        entities.add(new PulseUpdate(ed));
+        entities = ed.getEntities(Damage.class, TargetTo.class);
     }
     @Override
     protected void terminate() {
-        entities.forEach(e -> e.release());
-        entities.clear();
+        entities.release();
     }
     @Override
     public void update(SimTime time) {
-        for (DamageUpdate e : entities) {
-            e.update(time);
+        entities.applyChanges();
+        for (var e : entities) {
+            update(e, time);
         }
         lastFrameSeconds = time.getTimeInSeconds();
     }
     
-    private abstract class DamageUpdate {
-        
-        private EntitySet entities;
-        
-        public DamageUpdate(EntityData ed, Class... components) {
-            entities = ed.getEntities(components);
+    private void update(Entity e, SimTime time) {
+        var target = e.get(TargetTo.class).getTargetId();
+        var hitpoints = ed.getComponent(target, Health.class);
+        if (hitpoints == null) {
+            remove(e);
+            return;
         }
-        
-        public void release() {
-            entities.release();
+        switch (e.get(Damage.class).getType()) {
+            case Damage.IMPACT   -> updateImpact(e, target, hitpoints, time);
+            case Damage.DRAIN    -> updateDrain(e, target, hitpoints, time);
+            case Damage.PULSE    -> updatePulse(e, target, hitpoints, time);
+            case Damage.INFINITE -> updateInfinite(e, target);
         }
-        public void update(SimTime time) {
-            entities.applyChanges();
-            for (var e : entities) {
-                var target = e.get(TargetTo.class).getTarget();
-                var hitpoints = ed.getComponent(target, HitPoints.class);
-                if (hitpoints == null) {
-                    remove(e);
-                    continue;
-                }
-                update(e, target, hitpoints, time);
-            }
-        }
-        
-        protected abstract void update(Entity entity, EntityId target, HitPoints hitpoints, SimTime time);
-        protected abstract void remove(Entity e);
-        
-        protected Stats getStats(EntityId id) {
-            return ed.getComponent(id, Stats.class);
-        }
-        
     }
-    private class MomentaryUpdate extends DamageUpdate {
-
-        public MomentaryUpdate(EntityData ed) {
-            super(ed, TargetTo.class, MomentaryDamage.class);
-        }
-
-        @Override
-        protected void update(Entity entity, EntityId target, HitPoints hitpoints, SimTime time) {
-            var damage = entity.get(MomentaryDamage.class);
-            ed.setComponent(target, hitpoints.applyDamage(damage.getDamage(), getStats(target), time));
-            remove(entity);
-        }
-        @Override
-        protected void remove(Entity e) {
-            ed.removeComponent(e.getId(), MomentaryDamage.class);
-        }
-        
+    private void updateImpact(Entity e, EntityId target, Health hitpoints, SimTime time) {
+        ed.setComponent(target, hitpoints.applyDamage(e.get(Damage.class).getDamage(), getStats(target), time));
+        remove(e);
     }
-    private class PulseUpdate extends DamageUpdate {
-
-        public PulseUpdate(EntityData ed) {
-            super(ed, TargetTo.class, PulseDamage.class);
+    private void updateDrain(Entity e, EntityId target, Health hitpoints, SimTime time) {
+        ed.setComponent(target, hitpoints.applyDamage(e.get(Damage.class).getDamage()*(float)time.getTpf(), getStats(target), time));
+    }
+    private void updatePulse(Entity e, EntityId target, Health hitpoints, SimTime time) {
+        if (time.getTimeInSeconds()%Damage.PULSE_FREQUENCY < lastFrameSeconds%Damage.PULSE_FREQUENCY) {
+            ed.setComponent(target, hitpoints.applyDamage(e.get(Damage.class).getDamage(), getStats(target), time));
         }
-
-        @Override
-        protected void update(Entity entity, EntityId target, HitPoints hitpoints, SimTime time) {
-            var damage = entity.get(PulseDamage.class);
-            // If the last frame was below the pulse point, and the current
-            // frame is above the pulse point, then apply damage. This is the equivalent of:
-            // (currentFrameDelta % frequency) < (lastFrameDelta % frequency)
-            if ((time.getTimeInSeconds()-damage.getStartTime())%damage.getFrequency() < (lastFrameSeconds-damage.getStartTime())%damage.getFrequency()) {
-                ed.setComponent(target, hitpoints.applyDamage(damage.getDamage(), getStats(target), time));
-            }
-        }
-        @Override
-        protected void remove(Entity e) {}
-        
+    }
+    private void updateInfinite(Entity e, EntityId target) {
+        ed.setComponent(target, new Health(0));
+        remove(e);
+    }
+    
+    private Stats getStats(EntityId id) {
+        return ed.getComponent(id, Stats.class);
+    }
+    private void remove(Entity e) {
+        ed.removeComponent(e.getId(), Damage.class);
     }
     
 }

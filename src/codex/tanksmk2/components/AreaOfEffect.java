@@ -4,23 +4,26 @@
  */
 package codex.tanksmk2.components;
 
-import codex.tanksmk2.factories.Prefab;
 import com.simsilica.es.EntityComponent;
 
 /**
  *
  * @author codex
  */
-public class CreateOnTouch implements EntityComponent {
+public class AreaOfEffect implements EntityComponent {
     
-    private final Prefab prefab;
+    private final float radius;
 
-    public CreateOnTouch(Prefab prefab) {
-        this.prefab = prefab;
+    public AreaOfEffect(float radius) {
+        this.radius = radius;
     }
 
-    public Prefab getPrefab() {
-        return prefab;
+    public float getRadius() {
+        return radius;
+    }
+    @Override
+    public String toString() {
+        return "AreaOfEffect{" + "radius=" + radius + '}';
     }
     
 }

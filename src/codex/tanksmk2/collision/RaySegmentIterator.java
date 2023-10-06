@@ -42,20 +42,23 @@ public class RaySegmentIterator implements Iterator<PhysicsRayTestResult> {
     }
     @Override
     public PhysicsRayTestResult next() {
-        float d = probeDistance > 0 ? probeDistance : PROBE_DISTANCE;
+        float d = getProbeDistance();
         var results = raytest.getSpace().rayTest(ray.getOrigin(), ray.getOrigin().add(ray.getDirection().mult(d)));
         closest = null;
+        contactDistance = 0;
         for (var r : results) if (closest == null || r.getHitFraction() < closest.getHitFraction()) {
             closest = r;
         }
-        if (closest == null) {
+        if (closest != null) {
+            contactDistance = d*closest.getHitFraction();
+            ray.origin.addLocal(ray.getDirection().mult(contactDistance));
+            distanceTraveled += contactDistance;
+        }
+        else {
             miss = true;
             ray.origin.addLocal(ray.getDirection().mult(d));
-            return null;
+            distanceTraveled += d;
         }
-        contactDistance = d*closest.getHitFraction();
-        ray.origin.addLocal(ray.getDirection().mult(contactDistance));
-        distanceTraveled += contactDistance;
         iterationsMade++;
         probeDistance = -1;
         return closest;
@@ -75,6 +78,9 @@ public class RaySegmentIterator implements Iterator<PhysicsRayTestResult> {
     }
     public float getDistanceTraveled() {
         return distanceTraveled;
+    }
+    public float getProbeDistance() {
+        return probeDistance > 0 ? probeDistance : PROBE_DISTANCE;
     }
     public int getNumIterations() {
         return iterationsMade;

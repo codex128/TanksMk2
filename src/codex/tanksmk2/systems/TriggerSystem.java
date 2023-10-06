@@ -62,7 +62,7 @@ public class TriggerSystem extends AbstractGameSystem {
         
         @Override
         public void update(Entity e, SimTime time) {
-            e.set(e.get(Trigger.class).set(Trigger.AMMO, e.get(Inventory.class).isExhausted(e.get(AmmoChannel.class).getChannel())));
+            e.set(e.get(Trigger.class).set(Trigger.AMMO, !e.get(Inventory.class).isExhausted(e.get(AmmoChannel.class).getChannel())));
         }
         
     }

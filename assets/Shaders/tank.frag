@@ -13,6 +13,11 @@ uniform float m_TreadOffset2;
 uniform float m_TreadCoord1;
 uniform float m_TreadCoord2;
 
+#ifdef BURN
+    uniform sampler2D m_BurnMap;
+    uniform vec2 m_BurnOffset;
+#endif
+
 varying vec3 wPosition;
 varying vec3 wNormal;
 varying vec2 texCoord;
@@ -30,8 +35,14 @@ void main() {
     }
     uv.y = fract(uv.y);
     
+    #ifdef BURN
+        vec4 burnColor = texture2D(m_BurnMap, uv + m_BurnOffset);
+    #else
+        vec4 burnColor = vec4(0.0);
+    #endif
+    
     // diffuse
-    vec4 color = texture2D(m_DiffuseMap, uv);
+    vec4 color = mix(texture2D(m_DiffuseMap, uv), burnColor, burnColor.a);
     vec4 offsetMain = m_MainPlaceholder - color;
     vec4 offsetSec = m_SecondaryPlaceholder - color;
     if (length(offsetMain) < m_Similarity) {

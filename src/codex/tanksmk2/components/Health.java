@@ -11,13 +11,13 @@ import com.simsilica.sim.SimTime;
  *
  * @author codex
  */
-public class HitPoints implements EntityComponent {
+public class Health implements EntityComponent {
     
     public static final float MAX_HITPOINTS = 100;
     
     private final float points;
 
-    public HitPoints(float points) {
+    public Health(float points) {
         this.points = points;
     }
 
@@ -32,14 +32,14 @@ public class HitPoints implements EntityComponent {
         return "HitPoints{" + points + '}';
     }
     
-    public HitPoints applyDamage(float damage, Stats stats, SimTime time) {
+    public Health applyDamage(float damage, Stats stats, SimTime time) {
         return applyDamage(damage, (stats != null ? stats.get(Stats.ARMOR) : 0));
     }
-    public HitPoints applyDamage(float damage, float armor) {
+    public Health applyDamage(float damage, float armor) {
         return applyDamage(damage*(1f-armor));
     }
-    public HitPoints applyDamage(float damage) {
-        return new HitPoints(points-damage);
+    public Health applyDamage(float damage) {
+        return new Health(points-damage);
     }
     
 }

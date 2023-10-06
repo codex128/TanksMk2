@@ -22,7 +22,6 @@ public class PipelineSystem extends AbstractGameSystem {
     
     @Override
     protected void initialize() {
-        System.out.println("initialize pipeline system");
         ed = getManager().get(EntityData.class);
         entities = ed.getEntities(Pipeline.class);
     }

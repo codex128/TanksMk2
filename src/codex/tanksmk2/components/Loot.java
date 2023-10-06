@@ -5,18 +5,21 @@
 package codex.tanksmk2.components;
 
 import com.simsilica.es.EntityComponent;
-import com.simsilica.es.EntityId;
 
 /**
- * Indicates if the entity is defunct.
- * 
- * <p>A defunct entity has <em>minimal</em> functionality,
- * although it does still exist.
- * 
+ *
  * @author codex
  */
-public class Defunct implements EntityComponent {
+public class Loot implements EntityComponent {
+    
+    private final LootInfo[] loot;
 
-    public Defunct() {}
+    public Loot(LootInfo... loot) {
+        this.loot = loot;
+    }
+
+    public LootInfo[] getLoot() {
+        return loot;
+    }
     
 }

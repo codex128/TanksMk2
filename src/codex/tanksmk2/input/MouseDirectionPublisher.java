@@ -15,7 +15,6 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
-import com.simsilica.lemur.input.InputMapper;
 
 /**
  * Publishes mouse direction by intersecting a pick ray with a plane.
@@ -48,12 +47,11 @@ public class MouseDirectionPublisher implements PlayerInputPublisher {
     public void onDisable() {}
     @Override
     public void update(float tpf) {
-        if (updatePickRay()) {
-            var transform = GameUtils.getWorldTransform(ed, entity.getId());
-            var intersection = new Vector3f();
-            if (pickRay.intersectsWherePlane(new Plane(Vector3f.UNIT_Y, transform.getTranslation()), intersection)) {
-                ed.setComponent(entity.getId(), new LookAt(intersection.subtractLocal(transform.getTranslation()).normalizeLocal()));
-            }
+        updatePickRay();
+        var transform = GameUtils.getWorldTransform(ed, entity.getId());
+        var intersection = new Vector3f();
+        if (pickRay.intersectsWherePlane(new Plane(Vector3f.UNIT_Y, transform.getTranslation()), intersection)) {
+            ed.setComponent(entity.getId(), new LookAt(intersection.subtractLocal(transform.getTranslation()).normalizeLocal()));
         }
     }
     @Override
@@ -62,7 +60,7 @@ public class MouseDirectionPublisher implements PlayerInputPublisher {
     }
     
     private boolean updatePickRay() {
-        if (isScenarioChanged()) {
+        if (parametersChanged()) {
             pickRay = GameUtils.getCursorPickRay(camera, inputManager.getCursorPosition());
             lastCursorPosition.set(inputManager.getCursorPosition());
             lastCamTransform.setTranslation(camera.getLocation());
@@ -71,7 +69,7 @@ public class MouseDirectionPublisher implements PlayerInputPublisher {
         }
         return false;
     }
-    private boolean isScenarioChanged() {
+    private boolean parametersChanged() {
         return pickRay == null
                 || !inputManager.getCursorPosition().equals(lastCursorPosition)
                 || !camera.getLocation().equals(lastCamTransform.getTranslation())

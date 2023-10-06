@@ -1,7 +1,7 @@
 MaterialDef Tank {
     MaterialParameters {
         Texture2D DiffuseMap
-        Color MainColor            : 0.0 0.0 1.0 1.0
+        Color MainColor            : 1.0 0.0 0.0 1.0
         Color SecondaryColor       : 0.0 0.0 1.0 1.0
         Color MainPlaceholder      : 1.0 0.0 0.0 1.0
         Color SecondaryPlaceholder : 0.0 0.0 1.0 1.0
@@ -10,6 +10,8 @@ MaterialDef Tank {
         Float TreadOffset2         : 0.0
         Float TreadCoord1          : 0.1
         Float TreadCoord2          : 0.2
+        Texture2D BurnMap
+        Vector2 BurnOffset : 0.0 0.0
         Boolean UseInstancing : false
         Int NumberOfBones
         Matrix4Array BoneMatrices
@@ -30,6 +32,7 @@ MaterialDef Tank {
             ViewMatrix
         }
         Defines {
+            BURN                : BurnMap
             USE_INSTANCING      : UseInstancing
             NUM_BONES           : NumberOfBones
             NUM_MORPH_TARGETS   : NumberOfMorphTargets
