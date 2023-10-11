@@ -33,6 +33,9 @@ public class Rotation implements EntityComponent {
     public Quaternion getRotation() {
         return rotation;
     }
+    public Vector3f toDirection() {
+        return rotation.mult(Vector3f.UNIT_Z);
+    }
     public Rotation rotate(Quaternion rotate) {
         return new Rotation(rotation.mult(rotate));
     }

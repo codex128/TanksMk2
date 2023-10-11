@@ -11,7 +11,9 @@ import com.simsilica.es.EntityComponent;
  * 
  * <p>It should not matter what an entity is named, this component
  * is just here for detecting if an entity exists at all, especially
- * for children. In general, all entities should have this component.
+ * for children.
+ * <p>
+ * <strong><em>All entities should have this component.</em></strong>
  * 
  * @author codex
  */
@@ -28,7 +30,7 @@ public class GameObject implements EntityComponent {
     }
     @Override
     public String toString() {
-        return "GameObject{" + "name=" + name + '}';
+        return "GameObject{" + name + '}';
     }
     
 }

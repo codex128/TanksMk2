@@ -26,7 +26,7 @@ void main() {
     
     vec2 uv = texCoord.xy;
     
-    // tred animation
+    // tread animation
     if (uv.x < m_TreadCoord1) {
         uv.y += m_TreadOffset1;
     }

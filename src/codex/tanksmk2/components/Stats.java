@@ -66,6 +66,9 @@ public class Stats implements EntityComponent {
         return values;
     }
     
+    public static float getDefault(int i) {
+        return DEFAULTS[i].value;
+    }
     private static StatDefault def(String key, float value) {
         return new StatDefault(key, value);
     }

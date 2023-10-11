@@ -6,7 +6,9 @@ package codex.tanksmk2;
 
 import codex.j3map.J3map;
 import codex.tanksmk2.components.*;
+import codex.tanksmk2.factories.Prefab;
 import codex.tanksmk2.systems.CameraState;
+import codex.tanksmk2.util.GameUtils;
 import com.jme3.asset.AssetManager;
 import com.jme3.math.Vector3f;
 import com.simsilica.bullet.Mass;
@@ -40,43 +42,59 @@ public class LevelSystem extends AbstractGameSystem {
         var player = ed.createEntity();
         var pId = PlayerId.create();
         var pBase = ed.createEntity();
+        var pWheelFR = ed.createEntity();
+        var pTreads = ed.createEntity();
         var pTurret = ed.createEntity();
         var pGun = ed.createEntity();
         var pBasicStats = ed.createEntity();
         var source = (J3map)assetManager.loadAsset("Properties/tank.stats");
         ed.setComponents(player,
-            new GameObject("player"),
+            new GameObject("tank"),
             scene,
             pId,
             ModelInfo.create("tank", ed),
             ShapeInfo.create("tank", ed),
+            //new GeometricShapeInfo(Prefab.generateUnique(), GeometricShape.MergedHull),
             new Mass(20f),
             new SpawnPosition(new Vector3f()),
             new Position(),
             new Rotation(),
-            new Stats(1f),
-            new Speed(1f),
+            new Stats(),
             new Inventory(-1),
             new EquipedGuns(pGun),
             new InputChannel(InputChannel.SHOOT),
-            new Trigger(),
-            new Firerate(0.0, 2.0),
+            new Firerate(0.0, 0.2),
             new AmmoChannel(Inventory.BULLETS)
         );
         ed.setComponents(pBase,
             new GameObject("tank-base"),
             new Parent(player),
-            pId, // note: player id is required for recieving inputs
+            pId,
             new BoneInfo(player, "base"),
             new ApplyBoneRotation(ApplyBoneRotation.ENTITY_TO_BONE),
             new Rotation(),
             new InputChannel(InputChannel.MOVE),
-            new TurnSpeed(1f),
+            new TurnSpeed(2.5f),
+            new StatPointer(player, Stats.MOVE_SPEED),
             new Drive(true),
             new Pipeline(player, TankMoveDirection.class) // copies the velocity component over to the main player entity
         );
+        ed.setComponents(pWheelFR,
+            new GameObject("wheel"),
+            new Parent(pBase),
+            new BoneInfo(player, "wheel.FR"),
+            //new ApplyBoneRotation(ApplyBoneRotation.ENTITY_TO_BONE),
+            new Rotation(),
+            new Wheel(0f)
+        );
+        ed.setComponents(pTreads,
+            new GameObject("tread"),
+            new Parent(pBase),
+            new Tread("TreadOffset1", 0f),
+            new TargetTo(player)
+        );
         ed.setComponents(pTurret,
-            new GameObject("tank-turret"),
+            new GameObject("turret"),
             new Parent(player),
             pId,
             new BoneInfo(player, "turret"),
@@ -89,7 +107,6 @@ public class LevelSystem extends AbstractGameSystem {
         ed.setComponents(pGun,
             new GameObject("tank-gun"),
             new Parent(pTurret),
-            pId,
             new BoneInfo(player, "muzzle"),
             new ApplyBonePosition(ApplyBonePosition.BONE_TO_ENTITY),
             new ApplyBoneRotation(ApplyBoneRotation.ENTITY_TO_BONE),
@@ -97,9 +114,9 @@ public class LevelSystem extends AbstractGameSystem {
             new Rotation()
         );
         ed.setComponents(pBasicStats,
-            new GameObject("base-stats-buff"),
+            new GameObject("basic-stats"),
             new Parent(player),
-            new Stats(source),
+            new Stats(source).set(Stats.MOVE_SPEED, 3f),
             new StatsBuff(player)
         );
         
@@ -112,12 +129,22 @@ public class LevelSystem extends AbstractGameSystem {
             new CameraPriority()
         );
         
-        var floor = ed.createEntity();
-        ed.setComponents(floor,
-            new GameObject("physics-floor"),
-            ShapeInfo.create("floor", ed),
-            new Mass(0f),
-            new SpawnPosition(new Vector3f(0f, -1f, 0f))
+//        var floor = ed.createEntity();
+//        ed.setComponents(floor,
+//            new GameObject("physics-floor"),
+//            ShapeInfo.create("floor", ed),
+//            new Mass(0f),
+//            new SpawnPosition(new Vector3f(0f, -1f, 0f))
+//        );
+        
+        var level = ed.createEntity();
+        ed.setComponents(level,
+            new GameObject("level-scene"),
+            new Scene(),
+            new ModelInfo(Prefab.create("testLevel", ed), false),
+            new Position(0f, -5f, 0f),
+            new Rotation(),
+            GameUtils.duration(getManager().getStepTime(), 10)
         );
     
     }

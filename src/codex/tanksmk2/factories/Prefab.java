@@ -12,6 +12,8 @@ import com.simsilica.es.EntityData;
  */
 public class Prefab {
     
+    private static int nextId = -1;
+    
     private final int id;
     
     public Prefab(int id) {
@@ -31,6 +33,9 @@ public class Prefab {
     
     public static Prefab create(String name, EntityData ed) {
         return new Prefab(ed.getStrings().getStringId(name, true));
+    }
+    public static Prefab generateUnique() {
+        return new Prefab(nextId--);
     }
     
 }

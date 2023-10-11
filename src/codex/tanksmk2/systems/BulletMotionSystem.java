@@ -64,7 +64,7 @@ public class BulletMotionSystem extends AbstractGameSystem implements PhysicsTic
                 if (GameUtils.isDefunct(ed, e.getId())) {
                     continue;
                 }
-                update(e);
+                update(e, timeStep);
             }
         }
         catch (Exception e) {
@@ -74,12 +74,12 @@ public class BulletMotionSystem extends AbstractGameSystem implements PhysicsTic
     @Override
     public void physicsTick(PhysicsSpace space, float timeStep) {}
     
-    private void update(Entity e) {
+    private void update(Entity e, float timeStep) {
         var iterator = new SegmentedRaytest(bullet.getSpace(), constructRay(e)).iterator();
         while (iterator.hasNext()) {
             // set probe distance by velocity magnitude
             if (e.get(Speed.class).getSpeed() > 0) {
-                float distance = e.get(Speed.class).getSpeed()-iterator.getDistanceTraveled();
+                float distance = e.get(Speed.class).getSpeed()*timeStep-iterator.getDistanceTraveled();
                 if (distance <= 0) break;
                 iterator.setNextProbeDistance(distance);
             }

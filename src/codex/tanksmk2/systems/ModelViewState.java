@@ -6,27 +6,37 @@ package codex.tanksmk2.systems;
 
 import codex.boost.scene.SceneGraphIterator;
 import codex.tanksmk2.ESAppState;
+import codex.tanksmk2.bullet.GeometricShape;
 import codex.tanksmk2.components.ApplyBonePosition;
 import codex.tanksmk2.components.ApplyBoneRotation;
 import codex.tanksmk2.components.BoneInfo;
 import codex.tanksmk2.components.MatValue;
 import codex.tanksmk2.components.ModelInfo;
+import codex.tanksmk2.components.GeometricShapeInfo;
+import codex.tanksmk2.components.Parent;
 import codex.tanksmk2.components.Position;
 import codex.tanksmk2.components.Rotation;
+import codex.tanksmk2.components.Scene;
 import codex.tanksmk2.components.TargetTo;
+import codex.tanksmk2.factories.EntityFactory;
 import codex.tanksmk2.util.GameUtils;
 import com.jme3.anim.SkinningControl;
 import com.jme3.app.Application;
 import com.jme3.scene.Spatial;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityContainer;
-import com.simsilica.es.EntityData;
 import com.simsilica.es.EntitySet;
 import codex.tanksmk2.factories.Factory;
 import codex.tanksmk2.factories.ModelFactory;
+import codex.tanksmk2.factories.Prefab;
 import com.jme3.anim.Joint;
 import com.jme3.scene.Geometry;
+import com.simsilica.bullet.CollisionShapes;
+import com.simsilica.bullet.ShapeInfo;
 import com.simsilica.es.EntityId;
+import com.simsilica.state.GameSystemsState;
+import java.util.HashMap;
+import java.util.LinkedList;
 
 /**
  *
@@ -34,24 +44,47 @@ import com.simsilica.es.EntityId;
  */
 public class ModelViewState extends ESAppState {
 
+    public static final String ENTITY = "Entity";
+    public static final String CACHE = "special:cached_model";
+    
     private ModelContainer models;
-    private EntitySet bonePosition, boneRotation, materials;
-    private Factory<Spatial> factory;
+    private EntitySet bonePosition, boneRotation, materials, geometryShapes;
+    private Factory<Spatial> modelFactory;
+    private EntityFactory entityFactory;
+    private CollisionShapes shapes;
+    private final HashMap<EntityId, Spatial> modelCache = new HashMap<>();
+    
+    public ModelViewState() {}
+    public ModelViewState(Factory<Spatial> modelFactory) {
+        this.modelFactory = modelFactory;
+    }
     
     @Override
     protected void init(Application app) {
-        models = new ModelContainer(ed);
+        models = new ModelContainer();
         bonePosition = ed.getEntities(BoneInfo.class, ApplyBonePosition.class, Position.class);
         boneRotation = ed.getEntities(BoneInfo.class, ApplyBoneRotation.class, Rotation.class);
         materials = ed.getEntities(MatValue.class, TargetTo.class);
-        if (factory == null) {
-            factory = new ModelFactory(ed, assetManager);
+        geometryShapes = ed.getEntities(ModelInfo.class, GeometricShapeInfo.class);
+        if (modelFactory == null) {
+            modelFactory = new ModelFactory(ed, assetManager);
+        }
+        entityFactory = getState(GameSystemsState.class).get(EntityFactory.class);
+        shapes = getState(GameSystemsState.class).get(CollisionShapes.class);
+        if (entityFactory == null) {
+            throw new NullPointerException("Could not locate entity factory!");
+        }
+        if (shapes == null) {
+            throw new NullPointerException("Could not locate collision shapes!");
         }
     }
     @Override
     protected void cleanup(Application app) {
+        bonePosition.release();
         boneRotation.release();
         materials.release();
+        geometryShapes.release();
+        modelCache.clear();
     }
     @Override
     protected void onEnable() {
@@ -63,6 +96,7 @@ public class ModelViewState extends ESAppState {
     }
     @Override
     public void update(float tpf) {
+        boolean gsu = geometryShapes.applyChanges();
         models.update();
         if (bonePosition.applyChanges()) {
             bonePosition.getAddedEntities().forEach(e -> updateBonePositionFromEntity(e));
@@ -78,10 +112,13 @@ public class ModelViewState extends ESAppState {
             materials.getAddedEntities().forEach(e -> updateMaterial(e));
             materials.getChangedEntities().forEach(e -> updateMaterial(e));
         }
+        if (gsu) {
+            geometryShapes.getAddedEntities().forEach(e -> createGeometryShape(e));
+        }
     }
     
     private void updateBonePositionFromEntity(Entity e) {        
-        if (e.get(ApplyBonePosition.class).isDirection() != ApplyBonePosition.BONE_TO_ENTITY) {
+        if (e.get(ApplyBonePosition.class).isDirection() != ApplyBonePosition.ENTITY_TO_BONE) {
             return;
         }
         var j = getBone(e);
@@ -131,12 +168,74 @@ public class ModelViewState extends ESAppState {
             }
         }
     }
-    
-    protected Spatial createModel(EntityId customer, ModelInfo info) {
-        return factory.apply(ed, customer, info.getPrefab());
+    private void createGeometryShape(Entity e) {
+        var spatial = getSpatial(e.getId());
+        System.out.println("fetch spatial for geometric collision shape: "+spatial);
+        if (spatial == null) return;
+        var g = e.get(GeometricShapeInfo.class);
+        var info = new ShapeInfo(g.getPrefab().getId());
+        System.out.println("check slot open");
+        if (shapes.getShape(info) == null) {
+            System.out.println("create geometric collision shape");
+            shapes.register(info, GameUtils.createGeometricCollisionShape(Enum.valueOf(GeometricShape.class, g.getType()), rootNode));
+            if (ed.getComponent(e.getId(), ShapeInfo.class) == null) {
+                ed.setComponent(e.getId(), info);
+            }
+        }
+        ed.removeComponent(e.getId(), GeometricShapeInfo.class);
     }
-    protected void attachModel(Spatial model) {
-        rootNode.attachChild(model);
+    private void prepareScene(Spatial scene) {
+        var list = new LinkedList<Spatial>();
+        for (var spatial : new SceneGraphIterator(scene)) {
+            String name = spatial.getUserData(ENTITY);
+            if (name != null) {
+                var id = entityFactory.createFromSpatial(name, spatial);
+                if (id != null) {
+                    System.out.println("entity create from scene: "+id);
+                    ed.setComponents(id,
+                        new ModelInfo(Prefab.create(CACHE, ed)),
+                        new Position(spatial.getLocalTranslation()),
+                        new Rotation(spatial.getLocalRotation())
+                    );
+                    var parent = GameUtils.fetchId(spatial, -1);
+                    if (parent != null) {
+                        ed.setComponent(id, new Parent(parent));
+                    }
+                    GameUtils.appendId(id, spatial);
+                    cacheModel(id, spatial);
+                    list.add(spatial);
+                }
+            }
+        }
+        for (var spatial : list) {
+            // This has to be done afterward, in order to not
+            // interrupt the hierarchy during iteration.
+            rootNode.attachChild(spatial);
+        }
+        list.clear();
+    }
+    
+    private Spatial createModel(EntityId customer, ModelInfo info) {
+        // check if a model is already cached for this entity
+        var spatial = modelCache.remove(customer);
+        if (spatial == null) {
+            // manufacture a new model for the entity
+            spatial = modelFactory.apply(ed, customer, info.getPrefab());            
+            if (spatial == null) {
+                throw new NullPointerException("Prefab \""+info.getPrefab().getName(ed)+"\" failed to manufacture model!");
+            }
+        }
+        // append the id to the spatial
+        GameUtils.appendId(customer, spatial);
+        return spatial;
+    }
+    private void cacheModel(EntityId id, Spatial spatial) {
+        modelCache.put(id, spatial);
+    }
+    public Spatial getSpatial(EntityId id) {
+        var view = models.getObject(id);
+        if (view == null) return null;
+        return view.spatial;
     }
     
     private class ModelView {
@@ -147,11 +246,21 @@ public class ModelViewState extends ESAppState {
         public ModelView(Entity entity) {
             this.entity = entity;
             spatial = createModel(entity.getId(), entity.get(ModelInfo.class));
-            attachModel(spatial);
             update();
+            var s = ed.getComponent(entity.getId(), Scene.class);
+            if (s != null) {
+                prepareScene(spatial);
+            }
         }
         
         public final void update() {
+            boolean visible = entity.get(ModelInfo.class).isVisible();
+            if (visible && spatial.getParent() == null) {
+                rootNode.attachChild(spatial);
+            }
+            else if (!visible && spatial.getParent() != null) {
+                spatial.removeFromParent();
+            }
             var transform = GameUtils.getWorldTransform(ed, entity);
             spatial.setLocalTranslation(transform.getTranslation());
             spatial.setLocalRotation(transform.getRotation());
@@ -160,10 +269,10 @@ public class ModelViewState extends ESAppState {
             spatial.removeFromParent();
         }
         
-    }    
+    }
     private class ModelContainer extends EntityContainer<ModelView> {
 
-        public ModelContainer(EntityData ed) {
+        public ModelContainer() {
             super(ed, ModelInfo.class, Position.class, Rotation.class);
         }
         

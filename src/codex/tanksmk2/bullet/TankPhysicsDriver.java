@@ -4,7 +4,7 @@
  */
 package codex.tanksmk2.bullet;
 
-import codex.tanksmk2.components.Speed;
+import codex.tanksmk2.components.Stats;
 import codex.tanksmk2.components.TankMoveDirection;
 import com.jme3.bullet.collision.PhysicsCollisionEvent;
 import com.jme3.math.Vector3f;
@@ -12,6 +12,7 @@ import com.simsilica.bullet.ControlDriver;
 import com.simsilica.bullet.EntityPhysicsObject;
 import com.simsilica.bullet.EntityRigidBody;
 import com.simsilica.es.Entity;
+import com.simsilica.es.EntityData;
 import com.simsilica.sim.SimTime;
 
 /**
@@ -21,10 +22,12 @@ import com.simsilica.sim.SimTime;
  */
 public class TankPhysicsDriver implements ControlDriver {
     
+    private final EntityData ed;
     private final Entity entity;
     private EntityRigidBody body;
     
-    public TankPhysicsDriver(Entity entity) {
+    public TankPhysicsDriver(EntityData ed, Entity entity) {
+        this.ed = ed;
         this.entity = entity;
     }
     
@@ -36,9 +39,9 @@ public class TankPhysicsDriver implements ControlDriver {
     @Override
     public void update(SimTime time, EntityRigidBody body) {
         var direction = entity.get(TankMoveDirection.class);
-        var speed = entity.get(Speed.class);
-        if (speed.getSpeed() > 0) {
-            body.setLinearVelocity(direction.getDirection().mult(speed.getSpeed()).setY(body.getLastVelocity().y));
+        float speed = entity.get(Stats.class).get(Stats.MOVE_SPEED);
+        if (!direction.getDirection().equals(Vector3f.ZERO) && speed > 0) {
+            body.setLinearVelocity(direction.getDirection().mult(speed).setY(body.getLastVelocity().y));
         }
     }
     @Override

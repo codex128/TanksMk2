@@ -4,6 +4,7 @@
  */
 package codex.tanksmk2.factories;
 
+import codex.tanksmk2.systems.ModelViewState;
 import com.jme3.asset.AssetManager;
 import com.jme3.asset.TextureKey;
 import com.jme3.material.Material;
@@ -28,12 +29,17 @@ public class ModelFactory implements Factory<Spatial> {
     @Override
     public Spatial load(EntityId customer, String name) {
         return switch (name) {
-            case "tank" -> createTank();
-            case "bullet" -> createBullet();
+            case ModelViewState.CACHE -> null;
+            case "testLevel" -> createTestLevel();
+            case "tank"      -> createTank();
+            case "bullet"    -> createBullet();
             default -> null;
         };
     }
     
+    private Spatial createTestLevel() {
+        return assetManager.loadModel("Scenes/levels/testLevel.j3o");
+    }
     private Spatial createTank() {
         var tank = assetManager.loadModel("Models/tank/tank.j3o");
         var mat = new Material(assetManager, "MatDefs/tank.j3md");

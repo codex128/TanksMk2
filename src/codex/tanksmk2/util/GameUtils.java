@@ -4,21 +4,23 @@
  */
 package codex.tanksmk2.util;
 
+import codex.tanksmk2.bullet.GeometricShape;
 import codex.tanksmk2.components.*;
-import com.jme3.collision.CollisionResults;
-import com.jme3.math.FastMath;
-import com.jme3.math.Quaternion;
+import com.jme3.bullet.collision.shapes.CollisionShape;
+import com.jme3.bullet.util.CollisionShapeFactory;
 import com.jme3.math.Ray;
 import com.jme3.math.Transform;
 import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.renderer.Camera;
-import com.jme3.scene.Geometry;
-import com.jme3.scene.shape.Quad;
+import com.jme3.scene.Spatial;
 import com.simsilica.es.Entity;
+import com.simsilica.es.EntityComponent;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
+import com.simsilica.es.common.Decay;
 import com.simsilica.lemur.Axis;
+import com.simsilica.sim.SimTime;
 import java.util.LinkedList;
 
 /**
@@ -27,12 +29,19 @@ import java.util.LinkedList;
  */
 public class GameUtils {
     
-    private static Geometry planeGeometry;
-    
     public static float applyDeadzone(float value, float deadzone) {
         if (value > deadzone) return value;
         else return deadzone;
     }
+    public static float clamp(float value, Vector2f range) {
+        if (value < range.x) return range.x;
+        if (value > range.y) return range.y;
+        return value;
+    }    
+    public static double getSecondsSince(SimTime time, double point) {
+        return time.getTimeInSeconds()-point;
+    }
+    
     public static Vector3f toVector3f(Vector2f vec, Axis normal, float normalValue) {
         return switch (normal) {
             case X -> new Vector3f(normalValue, vec.y, vec.x);
@@ -64,9 +73,7 @@ public class GameUtils {
     public static Ray getCursorPickRay( Camera cam, Vector2f cursor ) {      
         if(!viewContainsCursor(cam, cursor)) return null;
         Vector3f clickNear = cam.getWorldCoordinates(cursor, 0);
-        Vector3f clickDir = cam.getWorldCoordinates(cursor, 1)
-                .subtractLocal(clickNear).normalizeLocal();
-        return new Ray(clickNear, clickDir);
+        return new Ray(clickNear, cam.getWorldCoordinates(cursor, 1).subtractLocal(clickNear).normalizeLocal());
     }
     /**
      * Returns true if the cursor is within the camera viewport.
@@ -86,16 +93,6 @@ public class GameUtils {
         float x = cursor.x / cam.getWidth();
         float y = cursor.y / cam.getHeight();
         return !(x < x1 || x > x2 || y < y1 || y > y2);
-    }
-    
-    public static void collideRayToXZPlane(Ray ray, Vector3f offset, CollisionResults results) {
-        if (planeGeometry == null) initPickPlaneGeometry();
-        planeGeometry.setLocalTranslation(offset.subtract(500f, 0f, 500f));
-        planeGeometry.collideWith(ray, results);
-    }
-    private static void initPickPlaneGeometry() {
-        planeGeometry = new Geometry("planeGeometry", new Quad(1000f, 1000f));
-        planeGeometry.setLocalRotation(new Quaternion().fromAngleAxis(FastMath.HALF_PI, Vector3f.UNIT_X));
     }
     
     public static Transform getWorldTransform(EntityData ed, EntityId id) {
@@ -144,12 +141,61 @@ public class GameUtils {
     
     /**
      * Tests if the entity exists based on if it has a {@link GameObject} component.
+     * <p>
+     * For this reason, all entities are expected to have a {@link GameObject} component.
      * @param ed
      * @param id
      * @return 
      */
     public static boolean entityExists(EntityData ed, EntityId id) {
         return ed.getComponent(id, GameObject.class) != null;
+    }    
+    public static <T extends EntityComponent> T getComponent(EntityData ed, EntityId id, Class<T> type) {
+        while (id != null) {
+            T component = ed.getComponent(id, type);
+            if (component != null) {
+                return component;
+            }
+            var parent = ed.getComponent(id, Parent.class);
+            if (parent == null) {
+                return null;
+            }
+            id = parent.getId();
+        }
+        return null;
+    }
+    
+    public static CollisionShape createGeometricCollisionShape(GeometricShape shape, Spatial spatial) {
+        return switch (shape) {
+            case Box         -> CollisionShapeFactory.createBoxShape(spatial);
+            case DynamicMesh -> CollisionShapeFactory.createDynamicMeshShape(spatial);
+            case GImpact     -> CollisionShapeFactory.createGImpactShape(spatial);
+            case MergedBox   -> CollisionShapeFactory.createMergedBoxShape(spatial);
+            case MergedHull  -> CollisionShapeFactory.createMergedHullShape(spatial);
+            case MergedMesh  -> CollisionShapeFactory.createMergedMeshShape(spatial);
+            case Mesh        -> CollisionShapeFactory.createMeshShape(spatial);
+            //case VHACD     -> CollisionShapeFactory.createVhacdShape(spatial, parameters, new CompoundCollisionShape());
+            //case VHACD4    -> CollisionShapeFactory.createVhacdShape(spatial, parameters, new CompoundCollisionShape());
+            case Vhacd  -> throw new UnsupportedOperationException("VHACD collision shapes are not supported yet!");
+            case Vhacd4 -> throw new UnsupportedOperationException("VHACD collision shapes are not supported yet!");
+        };
+    }
+    
+    public static void appendId(EntityId id, Spatial spatial) {
+        spatial.setUserData(EntityId.class.getName(), id.getId());
+    }
+    public static EntityId fetchId(Spatial spatial, int depth) {
+        while (spatial != null) {
+            Long id = spatial.getUserData(EntityId.class.getName());
+            if (id != null) return new EntityId(id);
+            if (depth-- == 0) return null;
+            spatial = spatial.getParent();
+        }
+        return null;
+    }
+    
+    public static Decay duration(SimTime time, double seconds) {
+        return Decay.duration(time.getFrame(), time.toSimTime(seconds));
     }
     
 }

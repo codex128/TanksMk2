@@ -15,9 +15,14 @@ import com.simsilica.es.EntityData;
 public class ModelInfo implements EntityComponent {
     
     private final Prefab prefab;
+    private final boolean visible;
 
     public ModelInfo(Prefab prefab) {
+        this(prefab, true);
+    }
+    public ModelInfo(Prefab prefab, boolean visible) {
         this.prefab = prefab;
+        this.visible = visible;
     }
     
     public Prefab getPrefab() {
@@ -28,6 +33,12 @@ public class ModelInfo implements EntityComponent {
     }
     public String getName(EntityData ed) {
         return prefab.getName(ed);
+    }
+    public boolean isVisible() {
+        return visible;
+    }    
+    public ModelInfo setVisible(boolean v) {
+        return new ModelInfo(prefab, v);
     }
     
     public static ModelInfo create(String name, EntityData ed) {
