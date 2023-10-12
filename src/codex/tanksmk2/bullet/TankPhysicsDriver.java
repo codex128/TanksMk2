@@ -38,10 +38,14 @@ public class TankPhysicsDriver implements ControlDriver {
     }
     @Override
     public void update(SimTime time, EntityRigidBody body) {
-        var direction = entity.get(TankMoveDirection.class);
-        float speed = entity.get(Stats.class).get(Stats.MOVE_SPEED);
-        if (!direction.getDirection().equals(Vector3f.ZERO) && speed > 0) {
-            body.setLinearVelocity(direction.getDirection().mult(speed).setY(body.getLastVelocity().y));
+        var stats = entity.get(Stats.class);
+        Vector3f target = entity.get(TankMoveDirection.class).getDirection().mult(stats.get(Stats.MOVE_SPEED));
+        if (!target.equals(Vector3f.ZERO)) {
+            //body.setLinearVelocity(direction.getDirection().mult(speed).setY(body.getLastVelocity().y));
+            Vector3f current = body.getLinearVelocity(null).setY(0f);
+            current.addLocal(target.subtract(current).normalizeLocal().multLocal(stats.get(Stats.MOVE_ACCEL)));
+            body.setLinearVelocity(current);
+            //body.applyCentralForce(target.mult(100));
         }
     }
     @Override
@@ -52,7 +56,7 @@ public class TankPhysicsDriver implements ControlDriver {
     private void setBodyProperties() {
         body.setGravity(new Vector3f(0f, -100f, 0f));
         body.setAngularFactor(0f);
-        //body.setFriction(0f);
+        body.setFriction(0.5f);
     }
     
 }

@@ -10,6 +10,7 @@ import codex.tanksmk2.bullet.GeometricShape;
 import codex.tanksmk2.components.ApplyBonePosition;
 import codex.tanksmk2.components.ApplyBoneRotation;
 import codex.tanksmk2.components.BoneInfo;
+import codex.tanksmk2.components.GameObject;
 import codex.tanksmk2.components.MatValue;
 import codex.tanksmk2.components.ModelInfo;
 import codex.tanksmk2.components.GeometricShapeInfo;
@@ -170,14 +171,11 @@ public class ModelViewState extends ESAppState {
     }
     private void createGeometryShape(Entity e) {
         var spatial = getSpatial(e.getId());
-        System.out.println("fetch spatial for geometric collision shape: "+spatial);
         if (spatial == null) return;
         var g = e.get(GeometricShapeInfo.class);
         var info = new ShapeInfo(g.getPrefab().getId());
-        System.out.println("check slot open");
         if (shapes.getShape(info) == null) {
-            System.out.println("create geometric collision shape");
-            shapes.register(info, GameUtils.createGeometricCollisionShape(Enum.valueOf(GeometricShape.class, g.getType()), rootNode));
+            shapes.register(info, GameUtils.createGeometricCollisionShape(Enum.valueOf(GeometricShape.class, g.getType()), spatial));
             if (ed.getComponent(e.getId(), ShapeInfo.class) == null) {
                 ed.setComponent(e.getId(), info);
             }
@@ -191,7 +189,6 @@ public class ModelViewState extends ESAppState {
             if (name != null) {
                 var id = entityFactory.createFromSpatial(name, spatial);
                 if (id != null) {
-                    System.out.println("entity create from scene: "+id);
                     ed.setComponents(id,
                         new ModelInfo(Prefab.create(CACHE, ed)),
                         new Position(spatial.getLocalTranslation()),

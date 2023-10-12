@@ -58,7 +58,7 @@ public class ShootingSystem extends AbstractGameSystem {
         }
         ed.setComponent(ed.createEntity(), new Supplier(e.get(AmmoChannel.class).getChannel(), -1));
         e.set(new Trigger(false));
-        e.set(e.get(Firerate.class).shoot(time));
+        e.set(new Firerate(time.getFutureTime(e.get(Stats.class).get(Stats.FIRERATE))));
     }
     private EntityId createBullet(Entity e, EntityId gun, SimTime time) {
         var transform = GameUtils.getWorldTransform(ed, gun);

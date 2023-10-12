@@ -55,8 +55,11 @@ public class TankRotationSystem extends AbstractGameSystem {
     }
     
     private boolean rotateTo(Entity e, Vector3f direction, SimTime time) {
+        if (direction.equals(Vector3f.ZERO)) {
+            return false;
+        }
         final float bias = -0.2f;
-        final float threshold = FastMath.PI*0.4f;
+        final float threshold = FastMath.PI*0.55f;
         Vector3f current = getDriveDirection(e);
         if (current.dot(direction) < bias) {
             e.set(e.get(Drive.class).reverse());

@@ -13,29 +13,17 @@ import com.simsilica.sim.SimTime;
  */
 public class Firerate implements EntityComponent {
     
-    private final double start;
-    private final double length;
+    private final long ready;
     
-    public Firerate(double start, double length) {
-        this.start = start;
-        this.length = length;
-    }
-    public Firerate(SimTime time, double length) {
-        this(time.getTimeInSeconds(), length);
+    public Firerate(long ready) {
+        this.ready = ready;
     }
 
-    public double getStart() {
-        return start;
-    }
-    public double getLength() {
-        return length;
+    public long getTimeReady() {
+        return ready;
     }
     public boolean isComplete(SimTime time) {
-        return start+length <= time.getTimeInSeconds();
-    }
-    
-    public Firerate shoot(SimTime time) {
-        return new Firerate(time, length);
+        return ready <= time.getTime();
     }
     
 }

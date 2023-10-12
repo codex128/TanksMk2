@@ -6,6 +6,7 @@ package codex.tanksmk2.factories;
 
 import codex.tanksmk2.bullet.GeometricShape;
 import codex.tanksmk2.components.*;
+import codex.tanksmk2.util.GameUtils;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Spatial;
 import com.jme3.shader.VarType;
@@ -31,6 +32,7 @@ public class EntityFactory {
     }
     
     public EntityId createBullet(Vector3f spawn, Vector3f direction, BulletStats stats) {
+        System.out.println("bullet-spawn-direction="+direction);
         var bullet = ed.createEntity();
         ed.setComponents(bullet,
             new GameObject("bullet"),
@@ -84,7 +86,7 @@ public class EntityFactory {
         ed.setComponents(wall,
             new GameObject("wall"),
             new GeometricShapeInfo(Prefab.generateUnique(), GeometricShape.Mesh),
-            new SpawnPosition(spatial.getWorldTranslation(), spatial.getWorldRotation()),
+            new SpawnPosition(spatial.getLocalTranslation(), spatial.getLocalRotation()),
             new Mass(0f),
             new ReflectOnTouch()
         );

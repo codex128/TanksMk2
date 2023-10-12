@@ -13,13 +13,15 @@ import com.simsilica.es.EntityComponent;
  */
 public class Stats implements EntityComponent {    
     
-    public static final int ARMOR = 0, MOVE_SPEED = 1, BULLET_SPEED = 2, BOUNCES = 3, FIRERATE = 4;
+    public static final int ARMOR = 0, MOVE_SPEED = 1, BULLET_SPEED = 2, BOUNCES = 3,
+            FIRERATE = 4, MOVE_ACCEL = 5;
     private static final StatDefault[] DEFAULTS = {
         def("armor", 0),
-        def("move-speed", 0),
-        def("bullet-accel", 0),
-        def("bounces", 0),
-        def("firerate", 0),
+        def("move-speed", 1),
+        def("bullet-speed", 10),
+        def("bounces", 1),
+        def("firerate", .1f),
+        def("move-accel", 0.5f),
     };
     
     private final float[] values = new float[DEFAULTS.length];

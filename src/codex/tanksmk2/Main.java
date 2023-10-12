@@ -5,6 +5,7 @@ import codex.j3map.processors.*;
 import codex.tanksmk2.bullet.*;
 import codex.tanksmk2.factories.*;
 import codex.tanksmk2.systems.*;
+import codex.tanksmk2.util.GameUtils;
 import com.jme3.app.BasicProfilerState;
 import com.jme3.app.DebugKeysAppState;
 import com.jme3.app.SimpleApplication;
@@ -16,6 +17,8 @@ import com.jme3.bullet.util.CollisionShapeFactory;
 import com.jme3.input.InputManager;
 import com.jme3.light.DirectionalLight;
 import com.jme3.math.Vector3f;
+import com.jme3.post.FilterPostProcessor;
+import com.jme3.post.filters.FXAAFilter;
 import com.jme3.renderer.RenderManager;
 import com.jme3.system.AppSettings;
 import com.simsilica.bullet.BulletSystem;
@@ -26,7 +29,6 @@ import com.simsilica.bullet.ShapeInfo;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.base.DefaultEntityData;
-import com.simsilica.es.common.Decay;
 import com.simsilica.event.ErrorEvent;
 import com.simsilica.event.EventBus;
 import com.simsilica.event.EventListener;
@@ -44,7 +46,7 @@ import com.simsilica.state.GameSystemsState;
 public class Main extends SimpleApplication implements EventListener<ErrorEvent> {
     
     public static final String TITLE = "Tanks";
-    public static final boolean ENABLE_BULLET_DEBUG = true;
+    public static final boolean ENABLE_BULLET_DEBUG = !true;
     
     EntityData ed;
     ModelViewState view;
@@ -71,10 +73,14 @@ public class Main extends SimpleApplication implements EventListener<ErrorEvent>
     @Override
     public void simpleInitApp() {
         
+        // listen for errors on SiO2 EventBus
         EventBus.addListener(ErrorEvent.fatalError, this);
+        EventBus.addListener(ErrorEvent.dispatchError, this);
         
+        // initialize Lemur
         GuiGlobals.initialize(this);
         
+        // initialize J3map (will be replaced by new JME json)
         assetManager.registerLoader(J3mapFactory.class, "stats", "j3map");
         J3mapFactory.registerAllProcessors(
             BooleanProcessor.class,
@@ -83,23 +89,28 @@ public class Main extends SimpleApplication implements EventListener<ErrorEvent>
             FloatProcessor.class
         );
         
+        // add app states
         view = new ModelViewState();
         background = new GameSystemsState(true);        
         stateManager.attachAll(view, background);
         
+        // register classes with game systems
         ed = register(EntityData.class, new DefaultEntityData());
         register(AssetManager.class, assetManager);
         register(InputManager.class, inputManager);
         register(RenderManager.class, renderManager);
         register(EntityFactory.class, new EntityFactory(ed, background.getGameSystemManager()));
         
+        // add decay system
         // hint: override destroyEntity(Entity e) to do extra stuff on entity removal
         background.addSystem(new DecaySystem());
         
+        // register collision shape management
         var shapes = register(CollisionShapes.class, new GameCollisionShapes(ed));
         shapes.register(ShapeInfo.create("tank", ed), CollisionShapeFactory.createDynamicMeshShape(assetManager.loadModel("Models/tank/tankCollisionShape.j3o")));
         shapes.register(ShapeInfo.create("floor", ed), new BoxCollisionShape(20f, .1f, 20f));
         
+        // add bullet system
         bullet = new BulletSystem();
         bullet.addPhysicsObjectListener(new TransformPublisher(ed));
         bullet.addPhysicsObjectListener(new VelocityPublisher(ed));
@@ -107,7 +118,7 @@ public class Main extends SimpleApplication implements EventListener<ErrorEvent>
             @Override
             protected EntityId createEntity(Contact c) {
                 var result = ed.createEntity();
-                ed.setComponents(result, c, Decay.duration(background.getStepTime().getTime(), background.getStepTime().toSimTime(0.1)));
+                ed.setComponents(result, c, GameUtils.duration(background.getStepTime(), 0.1));
                 return result;
             }
         });
@@ -122,10 +133,12 @@ public class Main extends SimpleApplication implements EventListener<ErrorEvent>
             stateManager.attach(debug);
         }
         
+        // attach app states
         stateManager.attach(new LightingState());
         stateManager.attach(new PlayerInputState());
         stateManager.attach(new CameraState());
         
+        // add systems
         addSystems(background,
             new BuffSystem(),
             new InventorySystem(),
@@ -142,8 +155,14 @@ public class Main extends SimpleApplication implements EventListener<ErrorEvent>
         );        
         background.addSystem(new LevelSystem());
         
-        // test lighting
+        // test lighting only
         rootNode.addLight(new DirectionalLight(new Vector3f(1, -1, 1)));
+        
+        // SXAA
+        var fpp = new FilterPostProcessor(assetManager);
+        var fxaa = new FXAAFilter();
+        fpp.addFilter(fxaa);
+        viewPort.addProcessor(fpp);
         
     }
     @Override
@@ -152,9 +171,15 @@ public class Main extends SimpleApplication implements EventListener<ErrorEvent>
     public void simpleRender(RenderManager rm) {}    
     @Override
     public void newEvent(EventType<ErrorEvent> type, ErrorEvent event) {
-        System.err.println("A fatal error has occured, forcing the application to shut down.");
-        event.getError().printStackTrace(System.err);
-        stop();
+        if (type == ErrorEvent.fatalError) {
+            System.err.println("A fatal error has occured, forcing the application to shut down.");
+            event.getError().printStackTrace(System.err);
+            stop();
+        }
+        else if (type == ErrorEvent.dispatchError) {
+            System.err.println("WARNING: Dispatch error occured in EventBus.");
+            event.getError().printStackTrace(System.err);
+        }
     }
     
     private <T> T register(Class<T> type, T object) {

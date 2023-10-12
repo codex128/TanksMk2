@@ -63,7 +63,7 @@ public class LevelSystem extends AbstractGameSystem {
             new Inventory(-1),
             new EquipedGuns(pGun),
             new InputChannel(InputChannel.SHOOT),
-            new Firerate(0.0, 0.2),
+            new Firerate(0),
             new AmmoChannel(Inventory.BULLETS)
         );
         ed.setComponents(pBase,
@@ -116,7 +116,7 @@ public class LevelSystem extends AbstractGameSystem {
         ed.setComponents(pBasicStats,
             new GameObject("basic-stats"),
             new Parent(player),
-            new Stats(source).set(Stats.MOVE_SPEED, 3f),
+            new Stats().set(Stats.MOVE_SPEED, 10f),
             new StatsBuff(player)
         );
         
@@ -124,8 +124,8 @@ public class LevelSystem extends AbstractGameSystem {
         ed.setComponents(camera,
             new GameObject("player-camera"),
             CameraState.APP_CAMERA,
-            new Position(-10, 10, -10),
-            new Rotation(new Vector3f(1, -1, 1), Vector3f.UNIT_Y),
+            new Position(0, 15, -20),
+            new Rotation(new Vector3f(0, -1, 1), Vector3f.UNIT_Y),
             new CameraPriority()
         );
         
@@ -143,8 +143,8 @@ public class LevelSystem extends AbstractGameSystem {
             new Scene(),
             new ModelInfo(Prefab.create("testLevel", ed), false),
             new Position(0f, -5f, 0f),
-            new Rotation(),
-            GameUtils.duration(getManager().getStepTime(), 10)
+            new Rotation()
+            //GameUtils.duration(getManager().getStepTime(), 10)
         );
     
     }

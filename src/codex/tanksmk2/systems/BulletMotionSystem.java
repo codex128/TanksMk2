@@ -125,6 +125,7 @@ public class BulletMotionSystem extends AbstractGameSystem implements PhysicsTic
                 }
             }
         }
+        System.out.println("position="+iterator.getContactPoint()+", direction="+iterator.getNextDirection());
         e.set(new Position(iterator.getContactPoint()));
         e.set(new Direction(iterator.getNextDirection()));
     }

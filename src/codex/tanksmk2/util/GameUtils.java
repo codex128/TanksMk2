@@ -8,6 +8,7 @@ import codex.tanksmk2.bullet.GeometricShape;
 import codex.tanksmk2.components.*;
 import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.util.CollisionShapeFactory;
+import com.jme3.math.Quaternion;
 import com.jme3.math.Ray;
 import com.jme3.math.Transform;
 import com.jme3.math.Vector2f;
@@ -22,6 +23,7 @@ import com.simsilica.es.common.Decay;
 import com.simsilica.lemur.Axis;
 import com.simsilica.sim.SimTime;
 import java.util.LinkedList;
+import java.util.function.Consumer;
 
 /**
  *
@@ -126,6 +128,15 @@ public class GameUtils {
         // identical method. So, here is an almost useless method.
         return getWorldTransform(ed, entity.getId());
     }
+    public static Transform getParentWorldTransform(EntityData ed, EntityId id) {
+        var parent = ed.getComponent(id, Parent.class);
+        if (parent != null) {
+            return getWorldTransform(ed, parent.getId());
+        }
+        else {
+            return Transform.IDENTITY;
+        }
+    }
     public static boolean isDefunct(EntityData ed, EntityId id) {
         while (true) {
             if (ed.getComponent(id, Dead.class) != null) {
@@ -163,6 +174,17 @@ public class GameUtils {
             id = parent.getId();
         }
         return null;
+    }
+    public static void traverseEntityHierarchy(EntityData ed, EntityId root, Consumer<EntityId> foreach) {
+        while (root != null) {
+            foreach.accept(root);
+            var parent = ed.getComponent(root, Parent.class);
+            if (parent == null) break;
+            root = parent.getId();
+        }
+    }
+    public static GameObject getGameObject(EntityData ed, EntityId id) {
+        return ed.getComponent(id, GameObject.class);
     }
     
     public static CollisionShape createGeometricCollisionShape(GeometricShape shape, Spatial spatial) {
