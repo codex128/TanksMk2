@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package codex.tanksmk2.systems;
+package codex.tanksmk2.states;
 
 import codex.boost.scene.SceneGraphIterator;
 import codex.tanksmk2.ESAppState;
@@ -10,7 +10,6 @@ import codex.tanksmk2.bullet.GeometricShape;
 import codex.tanksmk2.components.ApplyBonePosition;
 import codex.tanksmk2.components.ApplyBoneRotation;
 import codex.tanksmk2.components.BoneInfo;
-import codex.tanksmk2.components.GameObject;
 import codex.tanksmk2.components.MatValue;
 import codex.tanksmk2.components.ModelInfo;
 import codex.tanksmk2.components.GeometricShapeInfo;
@@ -19,7 +18,6 @@ import codex.tanksmk2.components.Position;
 import codex.tanksmk2.components.Rotation;
 import codex.tanksmk2.components.Scene;
 import codex.tanksmk2.components.TargetTo;
-import codex.tanksmk2.factories.EntityFactory;
 import codex.tanksmk2.util.GameUtils;
 import com.jme3.anim.SkinningControl;
 import com.jme3.app.Application;
@@ -28,8 +26,9 @@ import com.simsilica.es.Entity;
 import com.simsilica.es.EntityContainer;
 import com.simsilica.es.EntitySet;
 import codex.tanksmk2.factories.Factory;
+import codex.tanksmk2.factories.FactoryInfo;
 import codex.tanksmk2.factories.ModelFactory;
-import codex.tanksmk2.factories.Prefab;
+import codex.tanksmk2.factories.SceneEntityFactory;
 import com.jme3.anim.Joint;
 import com.jme3.scene.Geometry;
 import com.simsilica.bullet.CollisionShapes;
@@ -51,7 +50,6 @@ public class ModelViewState extends ESAppState {
     private ModelContainer models;
     private EntitySet bonePosition, boneRotation, materials, geometryShapes;
     private Factory<Spatial> modelFactory;
-    private EntityFactory entityFactory;
     private CollisionShapes shapes;
     private final HashMap<EntityId, Spatial> modelCache = new HashMap<>();
     
@@ -70,11 +68,7 @@ public class ModelViewState extends ESAppState {
         if (modelFactory == null) {
             modelFactory = new ModelFactory(ed, assetManager);
         }
-        entityFactory = getState(GameSystemsState.class).get(EntityFactory.class);
         shapes = getState(GameSystemsState.class).get(CollisionShapes.class);
-        if (entityFactory == null) {
-            throw new NullPointerException("Could not locate entity factory!");
-        }
         if (shapes == null) {
             throw new NullPointerException("Could not locate collision shapes!");
         }
@@ -187,20 +181,19 @@ public class ModelViewState extends ESAppState {
         for (var spatial : new SceneGraphIterator(scene)) {
             String name = spatial.getUserData(ENTITY);
             if (name != null) {
-                var id = entityFactory.createFromSpatial(name, spatial);
+                var id = SceneEntityFactory.create(new FactoryInfo(name, ed, app), spatial);
                 if (id != null) {
-                    ed.setComponents(id,
-                        new ModelInfo(Prefab.create(CACHE, ed)),
-                        new Position(spatial.getLocalTranslation()),
-                        new Rotation(spatial.getLocalRotation())
-                    );
                     var parent = GameUtils.fetchId(spatial, -1);
                     if (parent != null) {
                         ed.setComponent(id, new Parent(parent));
                     }
-                    GameUtils.appendId(id, spatial);
-                    cacheModel(id, spatial);
-                    list.add(spatial);
+                    // check if the entity actually wants to control that spatial
+                    var model = ed.getComponent(id, ModelInfo.class);
+                    if (model != null && model.getName(ed).equals(CACHE)) {
+                        GameUtils.appendId(id, spatial);
+                        cacheModel(id, spatial);
+                        list.add(spatial);
+                    }
                 }
             }
         }

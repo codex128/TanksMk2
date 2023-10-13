@@ -36,8 +36,6 @@ public class TransformPublisher implements PhysicsObjectListener {
     public void updated(EntityPhysicsObject object) {
         // Physics object transform must be converted from world coordinates to local coordinates
         var pt = GameUtils.getParentWorldTransform(ed, object.getId());
-        System.out.println("physics-object-rotation="+object.getPhysicsRotation(null));
-        System.out.println("physics-parent-rotation="+pt.getRotation());
         ed.setComponents(object.getId(),
             new Position(object.getPhysicsLocation(null).subtractLocal(pt.getTranslation())),
             // Division of two quaternions = (q1) * (inverse of q2)

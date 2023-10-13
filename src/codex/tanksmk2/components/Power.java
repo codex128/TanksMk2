@@ -18,6 +18,9 @@ public class Power implements EntityComponent {
     public Power(float power) {
         this.power = power;
     }
+    public Power(double power) {
+        this.power = (float)power;
+    }
 
     public float getPower() {
         return power;

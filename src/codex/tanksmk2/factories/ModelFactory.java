@@ -4,7 +4,9 @@
  */
 package codex.tanksmk2.factories;
 
-import codex.tanksmk2.systems.ModelViewState;
+import codex.tanksmk2.components.FlashType;
+import codex.tanksmk2.states.ModelViewState;
+import codex.tanksmk2.util.GameUtils;
 import com.jme3.asset.AssetManager;
 import com.jme3.asset.TextureKey;
 import com.jme3.material.Material;
@@ -30,27 +32,35 @@ public class ModelFactory implements Factory<Spatial> {
     public Spatial load(EntityId customer, String name) {
         return switch (name) {
             case ModelViewState.CACHE -> null;
-            case "testLevel" -> createTestLevel();
-            case "tank"      -> createTank();
-            case "bullet"    -> createBullet();
+            case "testLevel"    -> createTestLevel();
+            case "tank"         -> createTank();
+            case "bullet"       -> createBullet();
+            case "muzzleflash"  -> createMuzzleflash(customer);
             default -> null;
         };
     }
     
-    private Spatial createTestLevel() {
+    public Spatial createTestLevel() {
         return assetManager.loadModel("Scenes/levels/testLevel.j3o");
     }
-    private Spatial createTank() {
+    
+    public Spatial createTank() {
         var tank = assetManager.loadModel("Models/tank/tank.j3o");
         var mat = new Material(assetManager, "MatDefs/tank.j3md");
         mat.setTexture("DiffuseMap", assetManager.loadTexture(new TextureKey("Textures/tankDiffuse.png", false)));
         tank.setMaterial(mat);
         return tank;
     }
-    private Spatial createBullet() {
+    
+    public Spatial createBullet() {
         var bullet = assetManager.loadModel("Models/bullet/bullet.j3o");
         bullet.setLocalScale(.2f);
         return bullet;
+    }
+    
+    public Spatial createMuzzleflash(EntityId customer) {
+        var type = GameUtils.getComponent(ed, customer, FlashType.class, FlashType.DEFAULT);
+        // make muzzle flash spatial
     }
     
 }

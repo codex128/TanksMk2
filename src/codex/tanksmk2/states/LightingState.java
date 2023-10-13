@@ -2,11 +2,11 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package codex.tanksmk2.systems;
+package codex.tanksmk2.states;
 
 import codex.tanksmk2.ESAppState;
 import codex.tanksmk2.components.EntityLight;
-import codex.tanksmk2.components.InfluenceCone;
+import codex.tanksmk2.components.LightCone;
 import codex.tanksmk2.components.LightColor;
 import codex.tanksmk2.components.Position;
 import codex.tanksmk2.components.Power;
@@ -23,6 +23,7 @@ import com.jme3.light.SpotLight;
 import com.jme3.math.Vector3f;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
 import java.util.ArrayList;
 
 /**
@@ -54,10 +55,18 @@ public class LightingState extends ESAppState {
         entities.forEach(e -> e.update());
     }
     
+    public Light getLight(EntityId id) {
+        for (var container : entities) {
+            var l = container.getObject(id);
+            if (l != null) return l;
+        }
+        return null;
+    }
+    
     private class DirectionalContainer extends PersistentEntityContainer<DirectionalLight> {
         
         public DirectionalContainer(EntityData ed) {
-            super(ed, filter(EntityLight.DIRECTIONAL), Rotation.class, LightColor.class);
+            super(ed, filter(EntityLight.DIRECTIONAL), EntityLight.class, Rotation.class, LightColor.class);
         }
         
         @Override
@@ -107,14 +116,14 @@ public class LightingState extends ESAppState {
         }
         @Override
         protected void removeObject(PointLight t, Entity entity) {
-            throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+            rootNode.removeLight(t);
         }
         
     }
     private class SpotContainer extends PersistentEntityContainer<SpotLight> {
 
         public SpotContainer(EntityData ed) {
-            super(ed, filter(EntityLight.SPOT), EntityLight.class, Position.class, Rotation.class, Power.class, InfluenceCone.class, LightColor.class);
+            super(ed, filter(EntityLight.SPOT), EntityLight.class, Position.class, Rotation.class, Power.class, LightCone.class, LightColor.class);
         }
 
         @Override
@@ -128,7 +137,7 @@ public class LightingState extends ESAppState {
         @Override
         protected void updateObjectChanges(SpotLight t, Entity entity) {
             t.setSpotRange(entity.get(Power.class).getPower());
-            entity.get(InfluenceCone.class).applyToSpotLight(t);
+            entity.get(LightCone.class).applyToSpotLight(t);
             t.setColor(entity.get(LightColor.class).getColor());
         }
         @Override
@@ -146,7 +155,7 @@ public class LightingState extends ESAppState {
     private class AmbientContainer extends PersistentEntityContainer<AmbientLight> {
 
         public AmbientContainer(EntityData ed) {
-            super(ed, filter(EntityLight.AMIENT), EntityLight.class, LightColor.class);
+            super(ed, filter(EntityLight.AMBIENT), EntityLight.class, LightColor.class);
         }
 
         @Override

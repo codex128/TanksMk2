@@ -7,10 +7,12 @@ package codex.tanksmk2;
 import codex.j3map.J3map;
 import codex.tanksmk2.components.*;
 import codex.tanksmk2.factories.Prefab;
-import codex.tanksmk2.systems.CameraState;
+import codex.tanksmk2.states.CameraState;
 import codex.tanksmk2.util.GameUtils;
 import com.jme3.asset.AssetManager;
+import com.jme3.math.ColorRGBA;
 import com.jme3.math.Vector3f;
+import com.jme3.shader.VarType;
 import com.simsilica.bullet.Mass;
 import com.simsilica.bullet.ShapeInfo;
 import com.simsilica.bullet.SpawnPosition;
@@ -55,7 +57,7 @@ public class LevelSystem extends AbstractGameSystem {
             ModelInfo.create("tank", ed),
             ShapeInfo.create("tank", ed),
             //new GeometricShapeInfo(Prefab.generateUnique(), GeometricShape.MergedHull),
-            new Mass(20f),
+            new Mass(2000f),
             new SpawnPosition(new Vector3f()),
             new Position(),
             new Rotation(),
@@ -64,7 +66,8 @@ public class LevelSystem extends AbstractGameSystem {
             new EquipedGuns(pGun),
             new InputChannel(InputChannel.SHOOT),
             new Firerate(0),
-            new AmmoChannel(Inventory.BULLETS)
+            new AmmoChannel(Inventory.BULLETS),
+            new KillBulletOnTouch()
         );
         ed.setComponents(pBase,
             new GameObject("tank-base"),
@@ -116,15 +119,25 @@ public class LevelSystem extends AbstractGameSystem {
         ed.setComponents(pBasicStats,
             new GameObject("basic-stats"),
             new Parent(player),
-            new Stats().set(Stats.MOVE_SPEED, 10f),
+            new Stats().set(Stats.MOVE_SPEED, 20f),
             new StatsBuff(player)
+        );
+        ed.setComponents(ed.createEntity(),
+            new MatValue("MainColor", VarType.Vector4, ColorRGBA.Black),
+            new TargetTo(player),
+            GameUtils.duration(getManager().getStepTime(), 0.5)
+        );
+        ed.setComponents(ed.createEntity(),
+            new MatValue("SecondaryColor", VarType.Vector4, ColorRGBA.DarkGray),
+            new TargetTo(player),
+            GameUtils.duration(getManager().getStepTime(), 0.5)
         );
         
         var camera = ed.createEntity();
         ed.setComponents(camera,
             new GameObject("player-camera"),
             CameraState.APP_CAMERA,
-            new Position(0, 15, -20),
+            new Position(0, 45, -50),
             new Rotation(new Vector3f(0, -1, 1), Vector3f.UNIT_Y),
             new CameraPriority()
         );

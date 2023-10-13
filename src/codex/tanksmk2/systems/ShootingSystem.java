@@ -7,6 +7,7 @@ package codex.tanksmk2.systems;
 import codex.tanksmk2.components.*;
 import codex.tanksmk2.factories.BulletStats;
 import codex.tanksmk2.factories.EntityFactory;
+import codex.tanksmk2.factories.FactoryInfo;
 import codex.tanksmk2.util.GameUtils;
 import com.jme3.math.Vector3f;
 import com.simsilica.es.CreatedBy;
@@ -24,13 +25,11 @@ import com.simsilica.sim.SimTime;
 public class ShootingSystem extends AbstractGameSystem {
     
     private EntityData ed;
-    private EntityFactory factory;
     private EntitySet shooters;
     
     @Override
     protected void initialize() {
         ed = getManager().get(EntityData.class);
-        factory = getManager().get(EntityFactory.class);
         shooters = ed.getEntities(EquipedGuns.class, TriggerInput.class, Stats.class, Inventory.class, AmmoChannel.class, Firerate.class);
     }
     @Override
@@ -64,8 +63,8 @@ public class ShootingSystem extends AbstractGameSystem {
         var transform = GameUtils.getWorldTransform(ed, gun);
         var direction = transform.getRotation().mult(Vector3f.UNIT_Z);
         var bullet = switch (e.get(AmmoChannel.class).getChannel()) {
-            case Inventory.BULLETS -> factory.createBullet(transform.getTranslation(), direction, BulletStats.BULLET.apply(e.get(Stats.class)));
-            case Inventory.MISSILES -> factory.createMissile(transform.getTranslation(), direction, BulletStats.MISSILE.apply(e.get(Stats.class)));
+            case Inventory.BULLETS -> EntityFactory.createBullet(new FactoryInfo(null, ed, time), transform.getTranslation(), direction, BulletStats.BULLET.apply(e.get(Stats.class)));
+            case Inventory.MISSILES -> EntityFactory.createMissile(new FactoryInfo(null, ed, time), transform.getTranslation(), direction, BulletStats.MISSILE.apply(e.get(Stats.class)));
             //case Inventory.GRENADES -> 
             default -> null;
         };

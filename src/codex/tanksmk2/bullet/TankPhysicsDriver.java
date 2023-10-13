@@ -44,7 +44,7 @@ public class TankPhysicsDriver implements ControlDriver {
             //body.setLinearVelocity(direction.getDirection().mult(speed).setY(body.getLastVelocity().y));
             Vector3f current = body.getLinearVelocity(null).setY(0f);
             current.addLocal(target.subtract(current).normalizeLocal().multLocal(stats.get(Stats.MOVE_ACCEL)));
-            body.setLinearVelocity(current);
+            body.setLinearVelocity(current.setY(body.getLinearVelocity().y));
             //body.applyCentralForce(target.mult(100));
         }
     }
@@ -56,7 +56,8 @@ public class TankPhysicsDriver implements ControlDriver {
     private void setBodyProperties() {
         body.setGravity(new Vector3f(0f, -100f, 0f));
         body.setAngularFactor(0f);
-        body.setFriction(0.5f);
+        body.setFriction(0.8f);
+        body.setLinearDamping(0.9f);
     }
     
 }

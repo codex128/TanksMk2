@@ -18,7 +18,7 @@ public class Bounces implements EntityComponent {
         this(bouncesRemaining, 0);
     }
     private Bounces(int bouncesRemaining, int bouncesMade) {
-        this.bouncesRemaining = Math.max(bouncesRemaining, 0);
+        this.bouncesRemaining = Math.max(bouncesRemaining, -1);
         this.bouncesMade = bouncesMade;
     }
 
@@ -33,7 +33,7 @@ public class Bounces implements EntityComponent {
     }
     @Override
     public String toString() {
-        return "Bounces{" + "bouncesRemaining=" + bouncesRemaining + ", bouncesMade=" + bouncesMade + '}';
+        return "Bounces{" + "remaining=" + bouncesRemaining + ", made=" + bouncesMade + '}';
     }
     
     public Bounces increment() {

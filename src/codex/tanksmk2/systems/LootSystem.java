@@ -8,6 +8,7 @@ import codex.tanksmk2.components.CreateLootOnDeath;
 import codex.tanksmk2.components.Dead;
 import codex.tanksmk2.components.Loot;
 import codex.tanksmk2.factories.EntityFactory;
+import codex.tanksmk2.factories.FactoryInfo;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntitySet;
@@ -35,12 +36,12 @@ public class LootSystem extends AbstractGameSystem {
     @Override
     public void update(SimTime time) {
         if (entities.applyChanges()) {
-            entities.getAddedEntities().forEach(e -> create(e));
+            entities.getAddedEntities().forEach(e -> create(e, time));
         }
     }
     
-    private void create(Entity e) {
-        getManager().get(EntityFactory.class).createLoot(e.getId(), e.get(Loot.class));
+    private void create(Entity e, SimTime time) {
+        EntityFactory.createLoot(new FactoryInfo(null, ed, time), e.getId(), e.get(Loot.class));
     }
     
 }

@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package codex.tanksmk2.systems;
+package codex.tanksmk2.states;
 
 import codex.tanksmk2.ESAppState;
 import com.jme3.app.Application;

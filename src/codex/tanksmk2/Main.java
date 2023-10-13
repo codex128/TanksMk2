@@ -1,5 +1,8 @@
 package codex.tanksmk2;
 
+import codex.tanksmk2.states.LightingState;
+import codex.tanksmk2.states.ModelViewState;
+import codex.tanksmk2.states.CameraState;
 import codex.j3map.J3mapFactory;
 import codex.j3map.processors.*;
 import codex.tanksmk2.bullet.*;
@@ -19,6 +22,7 @@ import com.jme3.light.DirectionalLight;
 import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.FXAAFilter;
+import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.renderer.RenderManager;
 import com.jme3.system.AppSettings;
 import com.simsilica.bullet.BulletSystem;
@@ -99,7 +103,6 @@ public class Main extends SimpleApplication implements EventListener<ErrorEvent>
         register(AssetManager.class, assetManager);
         register(InputManager.class, inputManager);
         register(RenderManager.class, renderManager);
-        register(EntityFactory.class, new EntityFactory(ed, background.getGameSystemManager()));
         
         // add decay system
         // hint: override destroyEntity(Entity e) to do extra stuff on entity removal
@@ -155,13 +158,15 @@ public class Main extends SimpleApplication implements EventListener<ErrorEvent>
         );        
         background.addSystem(new LevelSystem());
         
-        // test lighting only
-        rootNode.addLight(new DirectionalLight(new Vector3f(1, -1, 1)));
-        
         // SXAA
         var fpp = new FilterPostProcessor(assetManager);
         var fxaa = new FXAAFilter();
         fpp.addFilter(fxaa);
+        
+        // ambient occlusion
+        var ao = new SSAOFilter();
+        fpp.addFilter(ao);
+        
         viewPort.addProcessor(fpp);
         
     }

@@ -11,14 +11,17 @@ import com.simsilica.es.EntityComponent;
  *
  * @author codex
  */
-public class InfluenceCone implements EntityComponent {
+public class LightCone implements EntityComponent {
     
     private final float innerAngle;
     private final float outerAngle;
 
-    public InfluenceCone(float innerAngle, float outerAngle) {
+    public LightCone(float innerAngle, float outerAngle) {
         this.innerAngle = innerAngle;
         this.outerAngle = outerAngle;
+    }
+    public LightCone(double innerAngle, double outerAngle) {
+        this((float)innerAngle, (float)outerAngle);
     }
 
     public float getInnerAngle() {

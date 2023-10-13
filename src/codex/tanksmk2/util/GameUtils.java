@@ -8,7 +8,7 @@ import codex.tanksmk2.bullet.GeometricShape;
 import codex.tanksmk2.components.*;
 import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.util.CollisionShapeFactory;
-import com.jme3.math.Quaternion;
+import com.jme3.math.ColorRGBA;
 import com.jme3.math.Ray;
 import com.jme3.math.Transform;
 import com.jme3.math.Vector2f;
@@ -22,6 +22,7 @@ import com.simsilica.es.EntityId;
 import com.simsilica.es.common.Decay;
 import com.simsilica.lemur.Axis;
 import com.simsilica.sim.SimTime;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.function.Consumer;
 
@@ -29,21 +30,34 @@ import java.util.function.Consumer;
  *
  * @author codex
  */
-public class GameUtils {
+public class GameUtils { 
     
-    public static float applyDeadzone(float value, float deadzone) {
-        if (value > deadzone) return value;
-        else return deadzone;
-    }
-    public static float clamp(float value, Vector2f range) {
-        if (value < range.x) return range.x;
-        if (value > range.y) return range.y;
-        return value;
-    }    
+    /**
+     * Returns the number of seconds since the reference point.
+     * @param time current application time
+     * @param point reference point (in seconds)
+     * @return number of seconds since the reference point
+     */
     public static double getSecondsSince(SimTime time, double point) {
         return time.getTimeInSeconds()-point;
     }
     
+    /**
+     * Converts {@link Vector2f} to {@link Vector3f}.
+     * <p>
+     * The normal axis indicates how the {@code Vector2f} components
+     * are distributed to the {@code Vector3f}.
+     * <ul>
+     *   <li>Axis.X = normal, x, y
+     *   <li>Axis.Y = x, normal, y
+     *   <li>Axis.Z = x, y, normal
+     * </ul>
+     * 
+     * @param vec Vector2f to convert
+     * @param normal the axis defining how the components are distributed
+     * @param normalValue the "odd" component value
+     * @return new Vector3f instance
+     */
     public static Vector3f toVector3f(Vector2f vec, Axis normal, float normalValue) {
         return switch (normal) {
             case X -> new Vector3f(normalValue, vec.y, vec.x);
@@ -51,6 +65,17 @@ public class GameUtils {
             case Z -> new Vector3f(vec.x, vec.y, normalValue);
         };
     }
+    
+    /**
+     * Sets the vector component and returns a new instance.
+     * <p>
+     * The parameter axis defines which component should be set.
+     * 
+     * @param vector vector to set
+     * @param parameter vector component to set
+     * @param value setter value
+     * @return new vector instance
+     */
     public static Vector3f insertParameter(Vector3f vector, Axis parameter, float value) {
         return switch (parameter) {
             case X -> new Vector3f(value, vector.y, vector.z);
@@ -58,9 +83,11 @@ public class GameUtils {
             case Z -> new Vector3f(vector.x, vector.y, value);
         };
     }
+    
     public static Vector3f ricochet(Vector3f vector, Vector3f normal) {
         return normal.mult(normal.dot(vector)*-2).addLocal(vector).normalizeLocal();
     }
+    
     public static Vector3f asVelocity(Entity entity) {
         return new Vector3f(entity.get(Direction.class).getDirection()).multLocal(entity.get(Speed.class).getSpeed());
     }
@@ -77,6 +104,7 @@ public class GameUtils {
         Vector3f clickNear = cam.getWorldCoordinates(cursor, 0);
         return new Ray(clickNear, cam.getWorldCoordinates(cursor, 1).subtractLocal(clickNear).normalizeLocal());
     }
+    
     /**
      * Returns true if the cursor is within the camera viewport.
      * @param cam
@@ -122,12 +150,14 @@ public class GameUtils {
         }
         return world;
     }
+    
     public static Transform getWorldTransform(EntityData ed, Entity entity) {
         // Originally, I did a slightly different operation for this method,
         // but stuff changed and I didn't feel like maintaining an extra, almost
         // identical method. So, here is an almost useless method.
         return getWorldTransform(ed, entity.getId());
     }
+    
     public static Transform getParentWorldTransform(EntityData ed, EntityId id) {
         var parent = ed.getComponent(id, Parent.class);
         if (parent != null) {
@@ -137,6 +167,7 @@ public class GameUtils {
             return Transform.IDENTITY;
         }
     }
+    
     public static boolean isDefunct(EntityData ed, EntityId id) {
         while (true) {
             if (ed.getComponent(id, Dead.class) != null) {
@@ -161,6 +192,7 @@ public class GameUtils {
     public static boolean entityExists(EntityData ed, EntityId id) {
         return ed.getComponent(id, GameObject.class) != null;
     }    
+    
     public static <T extends EntityComponent> T getComponent(EntityData ed, EntityId id, Class<T> type) {
         while (id != null) {
             T component = ed.getComponent(id, type);
@@ -175,6 +207,7 @@ public class GameUtils {
         }
         return null;
     }
+    
     public static void traverseEntityHierarchy(EntityData ed, EntityId root, Consumer<EntityId> foreach) {
         while (root != null) {
             foreach.accept(root);
@@ -183,6 +216,7 @@ public class GameUtils {
             root = parent.getId();
         }
     }
+    
     public static GameObject getGameObject(EntityData ed, EntityId id) {
         return ed.getComponent(id, GameObject.class);
     }
@@ -206,6 +240,7 @@ public class GameUtils {
     public static void appendId(EntityId id, Spatial spatial) {
         spatial.setUserData(EntityId.class.getName(), id.getId());
     }
+    
     public static EntityId fetchId(Spatial spatial, int depth) {
         while (spatial != null) {
             Long id = spatial.getUserData(EntityId.class.getName());
@@ -218,6 +253,19 @@ public class GameUtils {
     
     public static Decay duration(SimTime time, double seconds) {
         return Decay.duration(time.getFrame(), time.toSimTime(seconds));
+    }
+    
+    public static ColorRGBA colorArrayList(ArrayList<String> array, int i) {
+        return color4(array.get(i), array.get(i+1), array.get(i+2), (i+3 < array.size() ? array.get(i+3) : "1"));
+    }    
+    private static ColorRGBA color4(String r, String g, String b, String a) {
+        return new ColorRGBA(Float.parseFloat(r), Float.parseFloat(g), Float.parseFloat(b), Float.parseFloat(a));
+    }
+    
+    public static <T extends EntityComponent> T getComponent(EntityData ed, EntityId id, Class<T> type, T defComponent) {
+        T c = ed.getComponent(id, type);
+        if (c == null) return defComponent;
+        else return c;
     }
     
 }

@@ -108,13 +108,13 @@ public class BulletMotionSystem extends AbstractGameSystem implements PhysicsTic
                     var d = ed.getComponent(e.getId(), Damage.class);
                     if (d != null) {
                         ed.setComponents(ed.createEntity(), new TargetTo(object.getId()), d,
-                                Decay.duration(getManager().getStepTime().getTime(), getManager().getStepTime().toSimTime(0.1)));
+                                GameUtils.duration(getManager().getStepTime(), 0.1));
                     }
                     createImpactEffect(e.getId());
                     createImpactEffect(object.getId());
                     var impulse = ed.getComponent(e.getId(), ApplyImpulseOnImpact.class);
                     if (impulse != null) {
-                        ed.setComponent(object.getId(), new Impulse(iterator.getNextDirection().mult(e.get(Speed.class).getSpeed())));
+                        ed.setComponent(object.getId(), new Impulse(iterator.getNextDirection().mult(e.get(Speed.class).getSpeed()*0.25f)));
                     }
                     ed.setComponent(e.getId(), new Dead());
                     break;
@@ -125,7 +125,6 @@ public class BulletMotionSystem extends AbstractGameSystem implements PhysicsTic
                 }
             }
         }
-        System.out.println("position="+iterator.getContactPoint()+", direction="+iterator.getNextDirection());
         e.set(new Position(iterator.getContactPoint()));
         e.set(new Direction(iterator.getNextDirection()));
     }
