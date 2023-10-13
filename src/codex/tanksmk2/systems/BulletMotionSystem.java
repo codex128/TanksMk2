@@ -7,28 +7,31 @@ package codex.tanksmk2.systems;
 import codex.tanksmk2.collision.SegmentedRaytest;
 import codex.tanksmk2.components.ApplyImpulseOnImpact;
 import codex.tanksmk2.components.Bounces;
-import codex.tanksmk2.components.CreateEffectOnImpact;
-import codex.tanksmk2.components.CreateEffectOnRicochet;
+import codex.tanksmk2.components.CreateOnImpact;
+import codex.tanksmk2.components.CreateOnRicochet;
 import codex.tanksmk2.components.Damage;
 import codex.tanksmk2.components.Dead;
 import codex.tanksmk2.components.Direction;
+import codex.tanksmk2.components.Force;
 import codex.tanksmk2.components.KillBulletOnTouch;
 import codex.tanksmk2.components.Position;
 import codex.tanksmk2.components.ReflectOnTouch;
 import codex.tanksmk2.components.Speed;
 import codex.tanksmk2.components.TargetTo;
+import codex.tanksmk2.factories.FactoryInfo;
+import codex.tanksmk2.factories.ParentEntityFactory;
 import codex.tanksmk2.util.GameUtils;
 import com.jme3.bullet.PhysicsSpace;
 import com.jme3.bullet.PhysicsTickListener;
 import com.jme3.math.Ray;
+import com.jme3.math.Vector3f;
 import com.simsilica.bullet.BulletSystem;
 import com.simsilica.bullet.EntityPhysicsObject;
-import com.simsilica.bullet.Impulse;
+import com.simsilica.es.CreatedBy;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
-import com.simsilica.es.common.Decay;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 
@@ -47,7 +50,7 @@ public class BulletMotionSystem extends AbstractGameSystem implements PhysicsTic
         ed = getManager().get(EntityData.class);
         bullet = getManager().get(BulletSystem.class);
         bullet.getSpace().addTickListener(this);
-        entities = ed.getEntities(Position.class, Direction.class, Speed.class, Bounces.class);
+        entities = ed.getEntities(Position.class, Direction.class, Speed.class, Bounces.class, CreatedBy.class);
     }
     @Override
     protected void terminate() {
@@ -112,10 +115,7 @@ public class BulletMotionSystem extends AbstractGameSystem implements PhysicsTic
                     }
                     createImpactEffect(e.getId());
                     createImpactEffect(object.getId());
-                    var impulse = ed.getComponent(e.getId(), ApplyImpulseOnImpact.class);
-                    if (impulse != null) {
-                        ed.setComponent(object.getId(), new Impulse(iterator.getNextDirection().mult(e.get(Speed.class).getSpeed()*0.25f)));
-                    }
+                    applyForce(e, object.getId(), iterator.getNextDirection());
                     ed.setComponent(e.getId(), new Dead());
                     break;
                 }
@@ -128,20 +128,24 @@ public class BulletMotionSystem extends AbstractGameSystem implements PhysicsTic
         e.set(new Position(iterator.getContactPoint()));
         e.set(new Direction(iterator.getNextDirection()));
     }
+    
     private Ray constructRay(Entity e) {
         return new Ray(e.get(Position.class).getPosition(), e.get(Direction.class).getDirection());
-    }
-    
+    }    
     private void createRicochetEffect(EntityId id) {
-        var create = ed.getComponent(id, CreateEffectOnRicochet.class);
-        if (create != null) {
-            
-        }
+        ParentEntityFactory.create(new FactoryInfo(ed, getManager().getStepTime()), CreateOnRicochet.class, id, false);
     }
     private void createImpactEffect(EntityId id) {
-        var create = ed.getComponent(id, CreateEffectOnImpact.class);
-        if (create != null) {
-            
+        ParentEntityFactory.create(new FactoryInfo(ed, getManager().getStepTime()), CreateOnImpact.class, id, false);
+    }
+    private void applyForce(Entity bullet, EntityId target, Vector3f direction) {
+        var impulse = ed.getComponent(bullet.getId(), ApplyImpulseOnImpact.class);
+        if (impulse != null) {
+            ed.setComponents(ed.createEntity(),
+                new Force(direction.mult(bullet.get(Speed.class).getSpeed()*0.25f)),
+                new TargetTo(target),
+                GameUtils.duration(getManager().getStepTime(), 0.2)
+            );
         }
     }
     

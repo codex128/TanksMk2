@@ -41,7 +41,7 @@ public class LootSystem extends AbstractGameSystem {
     }
     
     private void create(Entity e, SimTime time) {
-        EntityFactory.createLoot(new FactoryInfo(null, ed, time), e.getId(), e.get(Loot.class));
+        EntityFactory.createLoot(new FactoryInfo(ed, time), e.getId(), e.get(Loot.class));
     }
     
 }

@@ -17,14 +17,6 @@ public class ParentEntityFactory {
     
     private ParentEntityFactory() {}
     
-    /**
-     * Creates an entity based on a parent entity.
-     * 
-     * @param info information for entity creation
-     * @param parent the entity to create from
-     * @param adopt true to have a {@link Parent} component created
-     * @return created entity
-     */
     public static EntityId create(FactoryInfo info, EntityId parent, boolean adopt) {
         EntityId id = switch (info.name) {
             case "muzzleflash" -> createMuzzleflash(info, parent);
@@ -34,6 +26,23 @@ public class ParentEntityFactory {
             info.ed.setComponent(id, new Parent(parent));
         }
         return id;
+    }
+    
+    public static EntityId[] create(FactoryInfo info, PrefabComponent prefabs, EntityId parent, boolean adopt) {
+        if (prefabs == null) {
+            return null;
+        }
+        var array = new EntityId[prefabs.getPrefabs().length];
+        int i = 0;
+        for (var p : prefabs.getPrefabs()) {
+            info.setPrefab(p);
+            array[i++] = create(info, parent, adopt);
+        }
+        return array;
+    }
+    
+    public static EntityId[] create(FactoryInfo info, Class<? extends PrefabComponent> compType, EntityId parent, boolean adopt) {
+        return create(info, info.getEntityData().getComponent(parent, compType), parent, adopt);
     }
     
     public static EntityId createMuzzleflash(FactoryInfo info, EntityId parent) {

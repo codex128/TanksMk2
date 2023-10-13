@@ -6,7 +6,6 @@ import codex.tanksmk2.states.CameraState;
 import codex.j3map.J3mapFactory;
 import codex.j3map.processors.*;
 import codex.tanksmk2.bullet.*;
-import codex.tanksmk2.factories.*;
 import codex.tanksmk2.systems.*;
 import codex.tanksmk2.util.GameUtils;
 import com.jme3.app.BasicProfilerState;
@@ -18,9 +17,8 @@ import com.jme3.bullet.collision.shapes.BoxCollisionShape;
 import com.jme3.bullet.debug.DebugConfiguration;
 import com.jme3.bullet.util.CollisionShapeFactory;
 import com.jme3.input.InputManager;
-import com.jme3.light.DirectionalLight;
-import com.jme3.math.Vector3f;
 import com.jme3.post.FilterPostProcessor;
+import com.jme3.post.filters.BloomFilter;
 import com.jme3.post.filters.FXAAFilter;
 import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.renderer.RenderManager;
@@ -166,6 +164,10 @@ public class Main extends SimpleApplication implements EventListener<ErrorEvent>
         // ambient occlusion
         var ao = new SSAOFilter();
         fpp.addFilter(ao);
+        
+        // bloom
+        var bloom = new BloomFilter(BloomFilter.GlowMode.Objects);
+        fpp.addFilter(bloom);
         
         viewPort.addProcessor(fpp);
         

@@ -29,7 +29,7 @@ public class Bounces implements EntityComponent {
         return bouncesMade;
     }
     public boolean isExhausted() {
-        return bouncesRemaining < 0;
+        return bouncesRemaining <= 0;
     }
     @Override
     public String toString() {

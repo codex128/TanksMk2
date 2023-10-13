@@ -17,7 +17,6 @@ import com.simsilica.es.EntityId;
 public class EntityFactory {
     
     public static EntityId createBullet(FactoryInfo info, Vector3f spawn, Vector3f direction, BulletStats stats) {
-        System.out.println("bullet-spawn-direction="+direction);
         var bullet = info.ed.createEntity();
         info.ed.setComponents(bullet,
             new GameObject("bullet"),

@@ -11,16 +11,10 @@ import com.simsilica.es.EntityComponent;
  *
  * @author codex
  */
-public class CreateEffectOnImpact implements EntityComponent {
-    
-    private final Prefab prefab;
+public class CreateOnShoot extends PrefabComponent {
 
-    public CreateEffectOnImpact(Prefab prefab) {
-        this.prefab = prefab;
-    }
-
-    public Prefab getPrefab() {
-        return prefab;
+    public CreateOnShoot(Prefab... prefabs) {
+        super(prefabs);
     }
     
 }

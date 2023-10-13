@@ -18,9 +18,9 @@ import com.simsilica.state.GameSystemsState;
  */
 public class FactoryInfo {
     
-    public final String name;
-    public final EntityData ed;
-    public final SimTime time;
+    public String name;
+    public EntityData ed;
+    public SimTime time;
 
     public FactoryInfo(String name, EntityData ed, SimTime time) {
         this.name = name;
@@ -39,7 +39,50 @@ public class FactoryInfo {
     public FactoryInfo(String name, EntityData ed, Application app) {
         this(name, ed, app.getStateManager());
     }
+    public FactoryInfo(Prefab prefab, EntityData ed, SimTime time) {
+        this(prefab.getName(ed), ed, time);
+    }
+    public FactoryInfo(Prefab prefab, GameSystemManager manager) {
+        this(prefab, manager.get(EntityData.class), manager.getStepTime());
+    }
+    public FactoryInfo(Prefab prefab, GameSystemsState state) {
+        this(prefab, state.get(EntityData.class), state.getStepTime());
+    }
+    public FactoryInfo(Prefab prefab, EntityData ed, AppStateManager manager) {
+        this(prefab, ed, manager.getState(GameSystemsState.class).getStepTime());
+    }
+    public FactoryInfo(Prefab prefab, EntityData ed, Application app) {
+        this(prefab, ed, app.getStateManager());
+    }
+    public FactoryInfo(EntityData ed, SimTime time) {
+        this((String)null, ed, time);
+    }
+    public FactoryInfo(GameSystemManager manager) {
+        this((String)null, manager.get(EntityData.class), manager.getStepTime());
+    }
+    public FactoryInfo(GameSystemsState state) {
+        this((String)null, state.get(EntityData.class), state.getStepTime());
+    }
+    public FactoryInfo(EntityData ed, AppStateManager manager) {
+        this((String)null, ed, manager.getState(GameSystemsState.class).getStepTime());
+    }
+    public FactoryInfo(EntityData ed, Application app) {
+        this((String)null, ed, app.getStateManager());
+    }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+    public void setPrefab(Prefab prefab) {
+        name = prefab.getName(ed);
+    }
+    public void setEntityData(EntityData ed) {
+        this.ed = ed;
+    }
+    public void setTime(SimTime time) {
+        this.time = time;
+    }
+    
     public String getName() {
         return name;
     }

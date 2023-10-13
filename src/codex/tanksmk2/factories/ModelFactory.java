@@ -10,6 +10,7 @@ import codex.tanksmk2.util.GameUtils;
 import com.jme3.asset.AssetManager;
 import com.jme3.asset.TextureKey;
 import com.jme3.material.Material;
+import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Spatial;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
@@ -60,7 +61,18 @@ public class ModelFactory implements Factory<Spatial> {
     
     public Spatial createMuzzleflash(EntityId customer) {
         var type = GameUtils.getComponent(ed, customer, FlashType.class, FlashType.DEFAULT);
-        // make muzzle flash spatial
+        return switch (type.getType()) {
+            case FlashType.FLAME    -> createFlameFlash();
+            default                 -> createFlameFlash();
+        };
+    }
+    private Spatial createFlameFlash() {
+        var flash = assetManager.loadModel("Models/muzzleflash/muzzleflash.j3o");
+        var mat = assetManager.loadMaterial("Materials/muzzleflash.j3m");
+        mat.setTransparent(true);
+        flash.setMaterial(mat);
+        flash.setQueueBucket(RenderQueue.Bucket.Transparent);
+        return flash;
     }
     
 }

@@ -11,20 +11,16 @@ import com.simsilica.es.EntityComponent;
  *
  * @author codex
  */
-public class CreateEffectOnRicochet implements EntityComponent {
+public class PrefabComponent implements EntityComponent {
     
-    private final Prefab prefab;
+    private final Prefab[] prefabs;
 
-    public CreateEffectOnRicochet(Prefab prefab) {
-        this.prefab = prefab;
+    public PrefabComponent(Prefab[] prefabs) {
+        this.prefabs = prefabs;
     }
 
-    public Prefab getPrefab() {
-        return prefab;
-    }
-    @Override
-    public String toString() {
-        return "CreateEffectOnRicochet{" + "prefab=" + prefab + '}';
+    public Prefab[] getPrefabs() {
+        return prefabs;
     }
     
 }
