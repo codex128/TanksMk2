@@ -6,9 +6,9 @@ package codex.tanksmk2.collision;
 
 import com.jme3.bullet.PhysicsSpace;
 import com.jme3.bullet.collision.PhysicsRayTestResult;
-import com.jme3.collision.CollisionResult;
 import com.jme3.math.Ray;
-import java.util.Iterator;
+import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
 
 /**
  *
@@ -16,12 +16,22 @@ import java.util.Iterator;
  */
 public class SegmentedRaytest implements Iterable<PhysicsRayTestResult> {
     
-    private PhysicsSpace space;
+    private final PhysicsSpace space;
+    private final EntityData ed;
+    private EntityId user;
     private Ray ray;
+    private ShapeFilter filter;
     
-    public SegmentedRaytest(PhysicsSpace space, Ray ray) {
+    public SegmentedRaytest(PhysicsSpace space, EntityData ed, EntityId user, Ray ray) {
+        this(space, ed, user, ray, ShapeFilter.OPEN);
+    }
+    
+    public SegmentedRaytest(PhysicsSpace space, EntityData ed, EntityId user, Ray ray, ShapeFilter filter) {
         this.space = space;
+        this.ed = ed;
+        this.user = user;
         this.ray = ray;
+        this.filter = filter;
     }
     
     @Override
@@ -32,8 +42,21 @@ public class SegmentedRaytest implements Iterable<PhysicsRayTestResult> {
     public PhysicsSpace getSpace() {
         return space;
     }
+    
+    public EntityData getEntityData() {
+        return ed;
+    }
+    
+    public EntityId getUser() {
+        return user != null ? user : EntityId.NULL_ID;
+    }
+    
     public Ray getRay() {
         return ray;
+    }
+    
+    public ShapeFilter getFilter() {
+        return filter;
     }
     
 }

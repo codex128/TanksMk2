@@ -19,6 +19,7 @@ import com.simsilica.state.GameSystemsState;
 public class FactoryInfo {
     
     public String name;
+    public int variation;
     public EntityData ed;
     public SimTime time;
 
@@ -69,13 +70,19 @@ public class FactoryInfo {
     public FactoryInfo(EntityData ed, Application app) {
         this((String)null, ed, app.getStateManager());
     }
-
-    public void setName(String name) {
+    
+    public FactoryInfo setName(String name) {
         this.name = name;
+        return this;
     }
-    public void setPrefab(Prefab prefab) {
-        name = prefab.getName(ed);
+    public FactoryInfo setVariation(int variation) {
+        this.variation = variation;
+        return this;
     }
+    public FactoryInfo setPrefab(Prefab prefab) {
+        return setName(prefab.getName(ed)).setVariation(variation);
+    }
+    
     public void setEntityData(EntityData ed) {
         this.ed = ed;
     }

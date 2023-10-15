@@ -51,22 +51,22 @@ public class DamageSystem extends AbstractGameSystem {
             return;
         }
         switch (e.get(Damage.class).getType()) {
-            case Damage.IMPACT   -> updateImpact(e, target, hitpoints, time);
+            case Damage.IMPACT   -> updateImpact(e, target, hitpoints);
             case Damage.DRAIN    -> updateDrain(e, target, hitpoints, time);
             case Damage.PULSE    -> updatePulse(e, target, hitpoints, time);
             case Damage.INFINITE -> updateInfinite(e, target);
         }
     }
-    private void updateImpact(Entity e, EntityId target, Health hitpoints, SimTime time) {
-        ed.setComponent(target, hitpoints.applyDamage(e.get(Damage.class).getDamage(), getStats(target), time));
+    private void updateImpact(Entity e, EntityId target, Health hitpoints) {
+        ed.setComponent(target, hitpoints.applyDamage(e.get(Damage.class).getDamage(), getStats(target)));
         remove(e);
     }
     private void updateDrain(Entity e, EntityId target, Health hitpoints, SimTime time) {
-        ed.setComponent(target, hitpoints.applyDamage(e.get(Damage.class).getDamage()*(float)time.getTpf(), getStats(target), time));
+        ed.setComponent(target, hitpoints.applyDamage(e.get(Damage.class).getDamage()*(float)time.getTpf(), getStats(target)));
     }
     private void updatePulse(Entity e, EntityId target, Health hitpoints, SimTime time) {
         if (time.getTimeInSeconds()%Damage.PULSE_FREQUENCY < lastFrameSeconds%Damage.PULSE_FREQUENCY) {
-            ed.setComponent(target, hitpoints.applyDamage(e.get(Damage.class).getDamage(), getStats(target), time));
+            ed.setComponent(target, hitpoints.applyDamage(e.get(Damage.class).getDamage(), getStats(target)));
         }
     }
     private void updateInfinite(Entity e, EntityId target) {

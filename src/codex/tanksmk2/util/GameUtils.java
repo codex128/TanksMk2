@@ -27,10 +27,11 @@ import java.util.LinkedList;
 import java.util.function.Consumer;
 
 /**
- *
+ * Useful utility methods for general game purposes.
+ * 
  * @author codex
  */
-public class GameUtils { 
+public class GameUtils {
     
     /**
      * Returns the number of seconds since the reference point.
@@ -84,18 +85,32 @@ public class GameUtils {
         };
     }
     
+    /**
+     * Reflects the direction vector off a plane defined by the normal.
+     * 
+     * @param vector direction
+     * @param normal normal of the reflecting plane
+     * @return ricocheted vector
+     */
     public static Vector3f ricochet(Vector3f vector, Vector3f normal) {
         return normal.mult(normal.dot(vector)*-2).addLocal(vector).normalizeLocal();
     }
     
+    /**
+     * Converts {@link Direction} and {@link Speed} components to a velocity vector.
+     * 
+     * @param entity entity containing direction and speed components
+     * @return velocity
+     */
     public static Vector3f asVelocity(Entity entity) {
         return new Vector3f(entity.get(Direction.class).getDirection()).multLocal(entity.get(Speed.class).getSpeed());
     }
     
     /**
      * Creates a picking ray based on camera position and cursor location on screen.
-     * @param cam
-     * @param cursor
+     * 
+     * @param cam camera to calculate the ray from
+     * @param cursor the cursor location on screen
      * @return ray for cursor picking, or null if cursor is outside the camera viewport.
      * @author Paul Speed @pspeed42
      */
@@ -107,9 +122,10 @@ public class GameUtils {
     
     /**
      * Returns true if the cursor is within the camera viewport.
-     * @param cam
-     * @param cursor
-     * @return 
+     * 
+     * @param cam camera to calculate from
+     * @param cursor cursor location on screen
+     * @return true if cursor is within camera viewport
      * @author Paul Speed @pspeed42
      */
     public static boolean viewContainsCursor( Camera cam, Vector2f cursor ) {
@@ -125,6 +141,13 @@ public class GameUtils {
         return !(x < x1 || x > x2 || y < y1 || y > y2);
     }
     
+    /**
+     * Calculates the world transform of an entity.
+     * 
+     * @param ed entity data
+     * @param id id of the entity
+     * @return world transform
+     */
     public static Transform getWorldTransform(EntityData ed, EntityId id) {
         var transforms = new LinkedList<Transform>();
         while (id != null) {
@@ -151,6 +174,13 @@ public class GameUtils {
         return world;
     }
     
+    /**
+     * Calculates the world transform of an entity.
+     * 
+     * @param ed entity data
+     * @param entity entity containing position and rotation components
+     * @return world transform
+     */
     public static Transform getWorldTransform(EntityData ed, Entity entity) {
         // Originally, I did a slightly different operation for this method,
         // but stuff changed and I didn't feel like maintaining an extra, almost
@@ -158,6 +188,13 @@ public class GameUtils {
         return getWorldTransform(ed, entity.getId());
     }
     
+    /**
+     * Calculates the world transform of an entity's parent.
+     * 
+     * @param ed entity data
+     * @param id id of the entity
+     * @return 
+     */
     public static Transform getParentWorldTransform(EntityData ed, EntityId id) {
         var parent = ed.getComponent(id, Parent.class);
         if (parent != null) {
@@ -168,10 +205,21 @@ public class GameUtils {
         }
     }
     
-    public static boolean isDefunct(EntityData ed, EntityId id) {
+    /**
+     * Returns true if the entity is dead.
+     * <p>
+     * An entity is dead when it contains a {@link Health} component
+     * that is {@link Health#isExhausted()}.
+     * 
+     * @param ed entity data
+     * @param id id of the entity
+     * @return true if the entity is dead
+     */
+    public static boolean isDead(EntityData ed, EntityId id) {
         while (true) {
-            if (ed.getComponent(id, Dead.class) != null) {
-                return true;
+            var health = ed.getComponent(id, Health.class);
+            if (health != null) {
+                return health.isExhausted();
             }
             var parent = ed.getComponent(id, Parent.class);
             if (parent == null) {
@@ -193,6 +241,15 @@ public class GameUtils {
         return ed.getComponent(id, GameObject.class) != null;
     }    
     
+    /**
+     * Fetches the component from the entity or parent entities.
+     * 
+     * @param <T>
+     * @param ed
+     * @param id
+     * @param type
+     * @return 
+     */
     public static <T extends EntityComponent> T getComponent(EntityData ed, EntityId id, Class<T> type) {
         while (id != null) {
             T component = ed.getComponent(id, type);
@@ -208,6 +265,16 @@ public class GameUtils {
         return null;
     }
     
+    /**
+     * Traverses the entity hierarchy through {@link Parent} components.
+     * <p>
+     * This traversal starts at the lowest entity, and works its
+     * way up, so that it traverses every parent of the root entity.
+     * 
+     * @param ed entity data
+     * @param root the entity to start at
+     * @param foreach consumer to be called for each step
+     */
     public static void traverseEntityHierarchy(EntityData ed, EntityId root, Consumer<EntityId> foreach) {
         while (root != null) {
             foreach.accept(root);
@@ -217,10 +284,24 @@ public class GameUtils {
         }
     }
     
+    /**
+     * Get the {@link GameObject} component from this entity.
+     * 
+     * @param ed entity data
+     * @param id id of the entity
+     * @return 
+     */
     public static GameObject getGameObject(EntityData ed, EntityId id) {
         return ed.getComponent(id, GameObject.class);
     }
     
+    /**
+     * Creates a collision shape based on the spatial shape.
+     * 
+     * @param shape shape generation method
+     * @param spatial spatial to calculate from
+     * @return physical collision shape
+     */
     public static CollisionShape createGeometricCollisionShape(GeometricShape shape, Spatial spatial) {
         return switch (shape) {
             case Box         -> CollisionShapeFactory.createBoxShape(spatial);
@@ -237,10 +318,25 @@ public class GameUtils {
         };
     }
     
+    /**
+     * Appends the entity's id to the userdata of the spatial.
+     * <p>
+     * The key of the userdata is "EntityId".
+     * 
+     * @param id id of the spatial, or null to clear the currently appended id.
+     * @param spatial spatial to append to
+     */
     public static void appendId(EntityId id, Spatial spatial) {
         spatial.setUserData(EntityId.class.getName(), id.getId());
     }
     
+    /**
+     * Fetches an appended {@link EntityId} from the spatial, if it exists.
+     * 
+     * @param spatial spatial to fetch from
+     * @param depth amount the algorithm will travel up the entity hierarchy to find the id, or -1 for no constraint
+     * @return appended entity id, or null if none is found
+     */
     public static EntityId fetchId(Spatial spatial, int depth) {
         while (spatial != null) {
             Long id = spatial.getUserData(EntityId.class.getName());
@@ -251,17 +347,47 @@ public class GameUtils {
         return null;
     }
     
+    /**
+     * Creates a {@link Decay} component starting at the current time
+     * and ending at a future time so many seconds away.
+     * 
+     * @param time current SimTime
+     * @param seconds seconds the decay lasts after the current time
+     * @return decay component
+     */
     public static Decay duration(SimTime time, double seconds) {
-        return Decay.duration(time.getFrame(), time.toSimTime(seconds));
+        return new Decay(time.getFrame(), time.getFutureTime(seconds));
     }
     
-    public static ColorRGBA colorArrayList(ArrayList<String> array, int i) {
-        return color4(array.get(i), array.get(i+1), array.get(i+2), (i+3 < array.size() ? array.get(i+3) : "1"));
-    }    
+    /**
+     * Constructs a {@link ColorRGBA} from the String values in the list
+     * starting at the index.
+     * <p>
+     * String values are parsed using {@link Float#parseFloat(java.lang.String)}, which
+     * can throw an exception if the strings do not accurately represent float values.
+     * 
+     * @param list list of strings to calculate the color from
+     * @param i starting index of the calculations
+     * @return color
+     */
+    public static ColorRGBA colorArrayList(ArrayList<String> list, int i) {
+        return color4(list.get(i), list.get(i+1), list.get(i+2), (i+3 < list.size() ? list.get(i+3) : "1"));
+    }
     private static ColorRGBA color4(String r, String g, String b, String a) {
         return new ColorRGBA(Float.parseFloat(r), Float.parseFloat(g), Float.parseFloat(b), Float.parseFloat(a));
     }
     
+    /**
+     * Gets the component from the entity, if it exists. Otherwise, returns the
+     * given default value.
+     * 
+     * @param <T> component type
+     * @param ed entity data
+     * @param id id of the entity
+     * @param type class of the component to get
+     * @param defComponent default component to return if no component was found
+     * @return the component under the entity, or the default value if none was found
+     */
     public static <T extends EntityComponent> T getComponent(EntityData ed, EntityId id, Class<T> type, T defComponent) {
         T c = ed.getComponent(id, type);
         if (c == null) return defComponent;

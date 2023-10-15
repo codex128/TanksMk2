@@ -13,35 +13,40 @@ import com.simsilica.es.EntityComponent;
 public class Damage implements EntityComponent {
     
     /**
-     * Frequency of the {@link #PULSE} damage type.
+     * Frequency of damage type {@link #PULSE} in seconds.
      */
     public static final double PULSE_FREQUENCY = 0.5;
     
     /**
      * Applies full damage instantly and only once.
      */
-    public static final String IMPACT = "impact";
+    public static final int IMPACT = 0;
+    
     /**
      * Applies constant damage per second.
      */
-    public static final String DRAIN = "drain";
+    public static final int DRAIN = 1;
+    
     /**
-     * Applies full damage every so often as defined
-     * by {@link #PULSE_FREQUENCY}.
+     * Applies full damage at intervals of length {@link #PULSE_FREQUENCY} in seconds.
      */
-    public static final String PULSE = "pulse";
+    public static final int PULSE = 2;
+    
     /**
-     * Reduces hit points to zero.
+     * Instantly reduces health to zero.
      */
-    public static final String INFINITE = "infinite";
+    public static final int INFINITE = 3;
     
     private final float damage;
-    private final String type;
+    private final int type;
 
     public Damage(float damage) {
         this(damage, IMPACT);
     }
-    public Damage(float damage, String type) {
+    public Damage(int type) {
+        this(0f, type);
+    }
+    public Damage(float damage, int type) {
         this.damage = damage;
         this.type = type;
     }
@@ -49,7 +54,7 @@ public class Damage implements EntityComponent {
     public float getDamage() {
         return damage;
     }
-    public String getType() {
+    public int getType() {
         return type;
     }
     @Override

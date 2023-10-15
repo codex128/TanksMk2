@@ -5,12 +5,14 @@
 package codex.tanksmk2;
 
 import codex.j3map.J3map;
+import codex.tanksmk2.bullet.GeometricShape;
 import codex.tanksmk2.components.*;
 import codex.tanksmk2.factories.Prefab;
 import codex.tanksmk2.states.CameraState;
 import codex.tanksmk2.util.GameUtils;
 import com.jme3.asset.AssetManager;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
 import com.jme3.shader.VarType;
 import com.simsilica.bullet.Mass;
@@ -67,7 +69,11 @@ public class LevelSystem extends AbstractGameSystem {
             new InputChannel(InputChannel.SHOOT),
             new Firerate(0),
             new AmmoChannel(Inventory.BULLETS),
-            new KillBulletOnTouch()
+            new Health(100),
+            KillBulletOnTouch.INSTANCE,
+            new DecayFromDeath(.2),
+            new RemoveOnDeath(ModelInfo.class, ShapeInfo.class),
+            new CreateOnDeath(Prefab.create("explosion", ed))
         );
         ed.setComponents(pBase,
             new GameObject("tank-base"),
@@ -159,6 +165,23 @@ public class LevelSystem extends AbstractGameSystem {
             new Rotation()
             //GameUtils.duration(getManager().getStepTime(), 10)
         );
+        
+        for (int i = 0; i < 5; i++) {
+            ed.setComponents(ed.createEntity(),
+                new GameObject("cube"),
+                ModelInfo.create("cube", ed),
+                new GeometricShapeInfo(Prefab.generateUnique(), GeometricShape.Box),
+                new SpawnPosition(
+                    FastMath.rand.nextFloat(-20, 20),
+                    FastMath.rand.nextFloat(7, 15),
+                    FastMath.rand.nextFloat(-20, 20)
+                ),
+                new Position(),
+                new Rotation(),
+                new Mass(1f),
+                new ReflectOnTouch()
+            );
+        }
     
     }
     @Override

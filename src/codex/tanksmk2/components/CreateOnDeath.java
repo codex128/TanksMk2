@@ -4,22 +4,16 @@
  */
 package codex.tanksmk2.components;
 
-import com.simsilica.es.EntityComponent;
+import codex.tanksmk2.factories.Prefab;
 
 /**
  *
  * @author codex
  */
-public class Loot implements EntityComponent {
+public class CreateOnDeath extends PrefabComponent {
     
-    private final LootInfo[] loot;
-
-    public Loot(LootInfo... loot) {
-        this.loot = loot;
-    }
-
-    public LootInfo[] getLoot() {
-        return loot;
+    public CreateOnDeath(Prefab... prefabs) {
+        super(prefabs);
     }
     
 }

@@ -5,6 +5,7 @@
 package codex.tanksmk2.input;
 
 import codex.tanksmk2.components.LookAt;
+import codex.tanksmk2.util.GameUtils;
 import com.jme3.math.Vector3f;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
@@ -43,6 +44,9 @@ public class AimDirectionPublisher implements PlayerInputPublisher, AnalogFuncti
     }
     @Override
     public void update(float tpf) {
+        if (GameUtils.isDead(ed, entity.getId())) {
+            return;
+        }
         if (!ed.getComponent(entity.getId(), LookAt.class).getVector().equals(input)) {
             ed.setComponent(entity.getId(), new LookAt(input));
         }

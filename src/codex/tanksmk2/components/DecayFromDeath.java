@@ -4,6 +4,7 @@
  */
 package codex.tanksmk2.components;
 
+import codex.tanksmk2.util.GameUtils;
 import com.simsilica.es.EntityComponent;
 import com.simsilica.es.common.Decay;
 import com.simsilica.sim.SimTime;
@@ -14,29 +15,29 @@ import com.simsilica.sim.SimTime;
  */
 public class DecayFromDeath implements EntityComponent {
     
-    private final long duration;
+    private final double duration;
     private final boolean force;
 
-    public DecayFromDeath(long duration) {
+    public DecayFromDeath(double duration) {
         this(duration, true);
     }
-    public DecayFromDeath(long duration, boolean force) {
+    public DecayFromDeath(double duration, boolean force) {
         this.duration = duration;
         this.force = force;
     }
 
-    public long getDuration() {
+    public double getDuration() {
         return duration;
     }
     public boolean isForceDecay() {
         return force;
     }
     public Decay generateDecay(SimTime time) {
-        return Decay.duration(time.getTime(), duration);
+        return GameUtils.duration(time, duration);
     }
     @Override
     public String toString() {
-        return "DecayFromDeath{" + "duration=" + duration + '}';
+        return "DecayFromDeath{" + "duration=" + duration + ", force=" + force + '}';
     }
     
 }

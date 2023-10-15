@@ -2,9 +2,10 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package codex.tanksmk2.systems;
+package codex.tanksmk2.states;
 
 import codex.tanksmk2.ESAppState;
+import codex.tanksmk2.components.Health;
 import codex.tanksmk2.components.InputChannel;
 import codex.tanksmk2.components.PlayerId;
 import codex.tanksmk2.input.*;
@@ -33,8 +34,6 @@ public class PlayerInputState extends ESAppState {
         
         System.out.println("initialize player input state");
         
-        // Create basic keyboard functions for the first player to join.
-        // Note: "first player to join" is not necessarily player 1.
         var f = TankInputFunctions.forKeyboard();
         f.initialize(inputMapper);
         f.initializeDefaultMappings(inputMapper);

@@ -13,15 +13,18 @@ import com.simsilica.es.EntityComponent;
  */
 public class Stats implements EntityComponent {    
     
-    public static final int ARMOR = 0, MOVE_SPEED = 1, BULLET_SPEED = 2, BOUNCES = 3,
-            FIRERATE = 4, MOVE_ACCEL = 5;
+    public static final int
+            ARMOR = 0, MOVE_SPEED = 1, BULLET_SPEED = 2,
+            BOUNCES = 3,  FIRERATE = 4, MOVE_ACCEL = 5,
+            DAMAGE = 6;
     private static final StatDefault[] DEFAULTS = {
         def("armor", 0),
         def("move-speed", 1),
         def("bullet-speed", 10),
-        def("bounces", 1),
+        def("bounces", 0),
         def("firerate", .1f),
         def("move-accel", 0.5f),
+        def("damage", 0),
     };
     
     private final float[] values = new float[DEFAULTS.length];
@@ -35,9 +38,6 @@ public class Stats implements EntityComponent {
     public Stats(Stats stats) {
         setValues(stats.values);
     }
-    public Stats(J3map source) {
-        setValues(source);
-    }
     
     private void setValues(StatDefault... defaults) {
         for (int i = 0; i < values.length && i < defaults.length; i++) {
@@ -47,11 +47,6 @@ public class Stats implements EntityComponent {
     private void setValues(float... v) {
         for (int i = 0; i < values.length && i < v.length; i++) {
             values[i] = v[i];
-        }
-    }
-    private void setValues(J3map source) {
-        for (int i = 0; i < values.length; i++) {
-            values[i] = source.getFloat(DEFAULTS[i].key, DEFAULTS[i].value);
         }
     }
     

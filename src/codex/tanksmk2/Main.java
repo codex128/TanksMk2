@@ -1,8 +1,7 @@
 package codex.tanksmk2;
 
-import codex.tanksmk2.states.LightingState;
-import codex.tanksmk2.states.ModelViewState;
-import codex.tanksmk2.states.CameraState;
+import codex.tanksmk2.states.PlayerInputState;
+import codex.tanksmk2.states.*;
 import codex.j3map.J3mapFactory;
 import codex.j3map.processors.*;
 import codex.tanksmk2.bullet.*;
@@ -23,13 +22,8 @@ import com.jme3.post.filters.FXAAFilter;
 import com.jme3.post.ssao.SSAOFilter;
 import com.jme3.renderer.RenderManager;
 import com.jme3.system.AppSettings;
-import com.simsilica.bullet.BulletSystem;
-import com.simsilica.bullet.CollisionShapes;
-import com.simsilica.bullet.Contact;
-import com.simsilica.bullet.DefaultContactPublisher;
-import com.simsilica.bullet.ShapeInfo;
-import com.simsilica.es.EntityData;
-import com.simsilica.es.EntityId;
+import com.simsilica.bullet.*;
+import com.simsilica.es.*;
 import com.simsilica.es.base.DefaultEntityData;
 import com.simsilica.event.ErrorEvent;
 import com.simsilica.event.EventBus;
@@ -104,7 +98,13 @@ public class Main extends SimpleApplication implements EventListener<ErrorEvent>
         
         // add decay system
         // hint: override destroyEntity(Entity e) to do extra stuff on entity removal
-        background.addSystem(new DecaySystem());
+        background.addSystem(new DecaySystem() {
+            @Override
+            public void destroyEntity(Entity e) {
+                //System.out.println("entity destroyed due to decay: "+GameUtils.getGameObject(ed, e.getId()));
+                super.destroyEntity(e);
+            }
+        });
         
         // register collision shape management
         var shapes = register(CollisionShapes.class, new GameCollisionShapes(ed));
@@ -152,6 +152,10 @@ public class Main extends SimpleApplication implements EventListener<ErrorEvent>
             //new SpeedStatSystem(),
             new FaceVelocitySystem(),
             new BulletMotionSystem(),
+            new DamageSystem(),
+            new ImpulseSystem(),
+            new ShockwaveSystem(),
+            new DeathSystem(),
             new WheelSystem()
         );        
         background.addSystem(new LevelSystem());

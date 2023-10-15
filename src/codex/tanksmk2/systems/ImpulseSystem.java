@@ -6,6 +6,7 @@ package codex.tanksmk2.systems;
 
 import codex.tanksmk2.components.Force;
 import codex.tanksmk2.components.TargetTo;
+import codex.tanksmk2.util.GameUtils;
 import com.simsilica.bullet.Impulse;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntitySet;

@@ -10,8 +10,11 @@ import codex.tanksmk2.util.GameUtils;
 import com.jme3.asset.AssetManager;
 import com.jme3.asset.TextureKey;
 import com.jme3.material.Material;
+import com.jme3.math.ColorRGBA;
 import com.jme3.renderer.queue.RenderQueue;
+import com.jme3.scene.Geometry;
 import com.jme3.scene.Spatial;
+import com.jme3.scene.shape.Box;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 
@@ -34,6 +37,7 @@ public class ModelFactory implements Factory<Spatial> {
         return switch (name) {
             case ModelViewState.CACHE -> null;
             case "testLevel"    -> createTestLevel();
+            case "cube"         -> createCube();
             case "tank"         -> createTank();
             case "bullet"       -> createBullet();
             case "muzzleflash"  -> createMuzzleflash(customer);
@@ -43,6 +47,14 @@ public class ModelFactory implements Factory<Spatial> {
     
     public Spatial createTestLevel() {
         return assetManager.loadModel("Scenes/levels/testLevel.j3o");
+    }
+    
+    public Spatial createCube() {
+        var geometry = new Geometry("cube", new Box(1, 1, 1));
+        var mat = new Material(assetManager, "Common/MatDefs/Light/PBRLighting.j3md");
+        mat.setColor("BaseColor", ColorRGBA.White);
+        geometry.setMaterial(mat);
+        return geometry;
     }
     
     public Spatial createTank() {

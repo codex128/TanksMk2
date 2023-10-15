@@ -15,13 +15,21 @@ public class Prefab {
     private static int nextId = -1;
     
     private final int id;
+    private final int variation;
     
     public Prefab(int id) {
+        this(id, 0);
+    }
+    public Prefab(int id, int variation) {
         this.id = id;
+        this.variation = variation;
     }
 
     public int getId() {
         return id;
+    }
+    public int getVariation() {
+        return variation;
     }
     public String getName(EntityData ed) {
         return ed.getStrings().getString(id);
@@ -33,6 +41,9 @@ public class Prefab {
     
     public static Prefab create(String name, EntityData ed) {
         return new Prefab(ed.getStrings().getStringId(name, true));
+    }
+    public static Prefab create(String name, int variation, EntityData ed) {
+        return new Prefab(ed.getStrings().getStringId(name, true), variation);
     }
     public static Prefab generateUnique() {
         return new Prefab(nextId--);

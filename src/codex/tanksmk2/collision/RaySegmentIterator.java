@@ -7,8 +7,8 @@ package codex.tanksmk2.collision;
 import com.jme3.bullet.collision.PhysicsRayTestResult;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
+import com.simsilica.bullet.EntityPhysicsObject;
 import java.util.Iterator;
-import java.util.List;
 
 /**
  *
@@ -16,7 +16,7 @@ import java.util.List;
  */
 public class RaySegmentIterator implements Iterator<PhysicsRayTestResult> {
     
-    private static final float PROBE_DISTANCE = 100f;
+    private static final float FAR = 100f;
     
     private final SegmentedRaytest raytest;
     private final Ray ray = new Ray();
@@ -40,14 +40,19 @@ public class RaySegmentIterator implements Iterator<PhysicsRayTestResult> {
     public boolean hasNext() {
         return !miss;
     }
+    
     @Override
     public PhysicsRayTestResult next() {
         float d = getProbeDistance();
         var results = raytest.getSpace().rayTest(ray.getOrigin(), ray.getOrigin().add(ray.getDirection().mult(d)));
         closest = null;
         contactDistance = 0;
-        for (var r : results) if (closest == null || r.getHitFraction() < closest.getHitFraction()) {
-            closest = r;
+        for (var r : results) {
+            if (r.getCollisionObject() instanceof EntityPhysicsObject
+                    && raytest.getFilter().filter(raytest.getEntityData(), raytest.getUser(), ((EntityPhysicsObject)r.getCollisionObject()).getId())
+                    && (closest == null || r.getHitFraction() < closest.getHitFraction())) {
+                closest = r;
+            }
         }
         if (closest != null) {
             contactDistance = d*closest.getHitFraction();
@@ -67,24 +72,31 @@ public class RaySegmentIterator implements Iterator<PhysicsRayTestResult> {
     public PhysicsRayTestResult getClosestResult() {
         return closest;
     }
+    
     public Vector3f getContactPoint() {
         return ray.getOrigin().clone();
     }
+    
     public Vector3f getNextDirection() {
         return ray.getDirection();
     }
+    
     public float getContactDistance() {
         return contactDistance;
     }
+    
     public float getDistanceTraveled() {
         return distanceTraveled;
     }
+    
     public float getProbeDistance() {
-        return probeDistance > 0 ? probeDistance : PROBE_DISTANCE;
+        return probeDistance > 0 ? probeDistance : FAR;
     }
+    
     public int getNumIterations() {
         return iterationsMade;
     }
+    
     public boolean collisionOccured() {
         return !miss;
     }
@@ -92,6 +104,7 @@ public class RaySegmentIterator implements Iterator<PhysicsRayTestResult> {
     public void setNextDirection(Vector3f direction) {
         ray.setDirection(direction);        
     }
+    
     public void setNextProbeDistance(float distance) {
         probeDistance = distance;
     }

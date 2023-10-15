@@ -5,6 +5,7 @@
 package codex.tanksmk2.systems;
 
 import codex.tanksmk2.bullet.TankPhysicsDriver;
+import codex.tanksmk2.components.Health;
 import codex.tanksmk2.components.Stats;
 import codex.tanksmk2.components.TankMoveDirection;
 import com.simsilica.bullet.BulletSystem;
@@ -45,7 +46,8 @@ public class TankDriverSystem extends AbstractGameSystem {
     private class TankContainer extends EntityContainer<TankPhysicsDriver> {
 
         public TankContainer(EntityData ed) {
-            super(ed, ShapeInfo.class, Mass.class, TankMoveDirection.class, Stats.class);
+            super(ed, Health.filter(true), ShapeInfo.class, Mass.class,
+                    TankMoveDirection.class, Stats.class, Health.class);
         }
         
         @Override

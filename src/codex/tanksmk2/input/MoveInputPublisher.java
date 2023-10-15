@@ -5,6 +5,7 @@
 package codex.tanksmk2.input;
 
 import codex.tanksmk2.components.TargetMove;
+import codex.tanksmk2.util.GameUtils;
 import com.jme3.math.Vector3f;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
@@ -49,6 +50,9 @@ public class MoveInputPublisher implements PlayerInputPublisher,
     }
     @Override
     public void update(float tpf) {
+        if (GameUtils.isDead(ed, entity.getId())) {
+            return;
+        }
         var target = ed.getComponent(entity.getId(), TargetMove.class);
         if (target == null || !target.getDirection().equals(input)) {
             ed.setComponent(entity.getId(), new TargetMove(input));

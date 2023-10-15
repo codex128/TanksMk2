@@ -47,6 +47,9 @@ public class MouseDirectionPublisher implements PlayerInputPublisher {
     public void onDisable() {}
     @Override
     public void update(float tpf) {
+        if (GameUtils.isDead(ed, entity.getId())) {
+            return;
+        }
         updatePickRay();
         var transform = GameUtils.getWorldTransform(ed, entity.getId());
         var intersection = new Vector3f();

@@ -41,15 +41,15 @@ public class TankPhysicsDriver implements ControlDriver {
         var stats = entity.get(Stats.class);
         Vector3f target = entity.get(TankMoveDirection.class).getDirection().mult(stats.get(Stats.MOVE_SPEED));
         if (!target.equals(Vector3f.ZERO)) {
-            //body.setLinearVelocity(direction.getDirection().mult(speed).setY(body.getLastVelocity().y));
             Vector3f current = body.getLinearVelocity(null).setY(0f);
             current.addLocal(target.subtract(current).normalizeLocal().multLocal(stats.get(Stats.MOVE_ACCEL)));
             body.setLinearVelocity(current.setY(body.getLinearVelocity().y));
-            //body.applyCentralForce(target.mult(100));
         }
     }
     @Override
-    public void terminate(EntityRigidBody body) {}
+    public void terminate(EntityRigidBody body) {
+        body.setAngularFactor(1f);
+    }
     @Override
     public void addCollision(EntityPhysicsObject otherBody, PhysicsCollisionEvent event) {}
     

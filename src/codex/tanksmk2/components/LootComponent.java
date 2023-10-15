@@ -4,14 +4,23 @@
  */
 package codex.tanksmk2.components;
 
+import codex.tanksmk2.factories.LootInfo;
 import com.simsilica.es.EntityComponent;
 
 /**
  *
  * @author codex
  */
-public class KillBulletOnTouch implements EntityComponent {
+public abstract class LootComponent implements EntityComponent {
     
-    public static final KillBulletOnTouch INSTANCE = new KillBulletOnTouch();
+    private final LootInfo[] loot;
+
+    public LootComponent(LootInfo... loot) {
+        this.loot = loot;
+    }
+
+    public LootInfo[] getLoot() {
+        return loot;
+    }
     
 }

@@ -13,17 +13,34 @@ import com.simsilica.es.EntityComponent;
 public class Shockwave implements EntityComponent {
     
     private final float power;
+    private final float falloff;
 
-    public Shockwave(float power) {
+    public Shockwave(float power, float falloff) {
         this.power = power;
+        this.falloff = falloff;
     }
 
+    /**
+     * Physical force at distance zero from the shockwave.
+     * 
+     * @return force
+     */
     public float getPower() {
         return power;
     }
+    
+    /**
+     * Distance where force becomes zero.
+     * 
+     * @return falloff
+     */
+    public float getFalloff() {
+        return falloff;
+    }
+    
     @Override
     public String toString() {
-        return "Shockwave{" + "power=" + power + '}';
+        return "Shockwave{" + "power=" + power + ", falloff=" + falloff + '}';
     }
     
 }

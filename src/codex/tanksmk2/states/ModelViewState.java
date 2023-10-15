@@ -13,6 +13,7 @@ import codex.tanksmk2.components.BoneInfo;
 import codex.tanksmk2.components.MatValue;
 import codex.tanksmk2.components.ModelInfo;
 import codex.tanksmk2.components.GeometricShapeInfo;
+import codex.tanksmk2.components.Health;
 import codex.tanksmk2.components.Parent;
 import codex.tanksmk2.components.Position;
 import codex.tanksmk2.components.Rotation;

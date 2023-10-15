@@ -5,7 +5,6 @@
 package codex.tanksmk2.components;
 
 import codex.tanksmk2.factories.Prefab;
-import com.simsilica.es.EntityComponent;
 
 /**
  *

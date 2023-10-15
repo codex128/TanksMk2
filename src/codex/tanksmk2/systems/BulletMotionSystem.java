@@ -5,21 +5,10 @@
 package codex.tanksmk2.systems;
 
 import codex.tanksmk2.collision.SegmentedRaytest;
-import codex.tanksmk2.components.ApplyImpulseOnImpact;
-import codex.tanksmk2.components.Bounces;
-import codex.tanksmk2.components.CreateOnImpact;
-import codex.tanksmk2.components.CreateOnRicochet;
-import codex.tanksmk2.components.Damage;
-import codex.tanksmk2.components.Dead;
-import codex.tanksmk2.components.Direction;
-import codex.tanksmk2.components.Force;
-import codex.tanksmk2.components.KillBulletOnTouch;
-import codex.tanksmk2.components.Position;
-import codex.tanksmk2.components.ReflectOnTouch;
-import codex.tanksmk2.components.Speed;
-import codex.tanksmk2.components.TargetTo;
+import codex.tanksmk2.collision.ShapeFilter;
+import codex.tanksmk2.components.*;
 import codex.tanksmk2.factories.FactoryInfo;
-import codex.tanksmk2.factories.ParentEntityFactory;
+import codex.tanksmk2.factories.CustomerEntityFactory;
 import codex.tanksmk2.util.GameUtils;
 import com.jme3.bullet.PhysicsSpace;
 import com.jme3.bullet.PhysicsTickListener;
@@ -32,6 +21,8 @@ import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
+import com.simsilica.event.ErrorEvent;
+import com.simsilica.event.EventBus;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 
@@ -40,7 +31,10 @@ import com.simsilica.sim.SimTime;
  * @author codex
  */
 public class BulletMotionSystem extends AbstractGameSystem implements PhysicsTickListener {
-
+    
+    // either the bullet has bounced at least once, or the shape has a different creator
+    private static final ShapeFilter FILTER = ShapeFilter.or(ShapeFilter.byBounces(1, -1), ShapeFilter.nor(ShapeFilter.byCreator(null)));
+    
     private EntityData ed;
     private BulletSystem bullet;
     private EntitySet entities;
@@ -64,21 +58,23 @@ public class BulletMotionSystem extends AbstractGameSystem implements PhysicsTic
         try {
             entities.applyChanges();
             for (var e : entities) {
-                if (GameUtils.isDefunct(ed, e.getId())) {
+                if (GameUtils.isDead(ed, e.getId())) {
                     continue;
                 }
                 update(e, timeStep);
             }
         }
         catch (Exception e) {
-            e.printStackTrace(System.err);
+            EventBus.publish(ErrorEvent.fatalError, new ErrorEvent(e));
         }
     }
     @Override
     public void physicsTick(PhysicsSpace space, float timeStep) {}
     
     private void update(Entity e, float timeStep) {
-        var iterator = new SegmentedRaytest(bullet.getSpace(), constructRay(e)).iterator();
+        // either at least one bounce must be made, or the bullet and the shape are not created by the same entity, or the shape did not create the bullet
+        var filter = ShapeFilter.or(ShapeFilter.byBounces(1, -1), ShapeFilter.nor(ShapeFilter.byCreator(null)), ShapeFilter.notId(e.get(CreatedBy.class).getCreatorId()));
+        var iterator = new SegmentedRaytest(bullet.getSpace(), ed, e.getId(), constructRay(e), filter).iterator();
         while (iterator.hasNext()) {
             // set probe distance by velocity magnitude
             if (e.get(Speed.class).getSpeed() > 0) {
@@ -90,6 +86,12 @@ public class BulletMotionSystem extends AbstractGameSystem implements PhysicsTic
             iterator.next();
             // process collision results
             if (iterator.collisionOccured() && iterator.getClosestResult().getCollisionObject() instanceof EntityPhysicsObject) {
+                Vector3f normal = iterator.getClosestResult().getHitNormalLocal(null);
+                Vector3f direction = new Vector3f(iterator.getNextDirection());
+                // only process collisions on front faces
+                if (normal.dot(iterator.getNextDirection()) > 0) {
+                    continue;
+                }
                 boolean impact = false;
                 var object = (EntityPhysicsObject)iterator.getClosestResult().getCollisionObject();
                 if (ed.getComponent(object.getId(), KillBulletOnTouch.class) != null) {
@@ -98,7 +100,7 @@ public class BulletMotionSystem extends AbstractGameSystem implements PhysicsTic
                 else {
                     var reflect = ed.getComponent(object.getId(), ReflectOnTouch.class);
                     if (reflect != null) {
-                        iterator.setNextDirection(GameUtils.ricochet(iterator.getNextDirection(), iterator.getClosestResult().getHitNormalLocal(null)));
+                        iterator.setNextDirection(GameUtils.ricochet(direction, normal));
                         if (reflect.isConsumeBounce()) {
                             e.set(e.get(Bounces.class).increment());
                         }
@@ -110,13 +112,22 @@ public class BulletMotionSystem extends AbstractGameSystem implements PhysicsTic
                 if (impact) {
                     var d = ed.getComponent(e.getId(), Damage.class);
                     if (d != null) {
-                        ed.setComponents(ed.createEntity(), new TargetTo(object.getId()), d,
-                                GameUtils.duration(getManager().getStepTime(), 0.1));
+                        ed.setComponents(ed.createEntity(),
+                            new TargetTo(object.getId()), d,
+                            GameUtils.duration(getManager().getStepTime(), 0.1)
+                        );
                     }
                     createImpactEffect(e.getId());
                     createImpactEffect(object.getId());
-                    applyForce(e, object.getId(), iterator.getNextDirection());
-                    ed.setComponent(e.getId(), new Dead());
+                    applyForce(e, object.getId(), direction);
+                    // Create a damager entity that instantly kills the bullet.
+                    // Alternatively, if we ever add penetration, a finite damage
+                    // value could be applied to allow bullets to penetrate things.
+                    ed.setComponents(ed.createEntity(),
+                        new TargetTo(e.getId()),
+                        new Damage(Damage.INFINITE),
+                        GameUtils.duration(getManager().getStepTime(), 0.8)
+                    );
                     break;
                 }
                 else {
@@ -131,18 +142,18 @@ public class BulletMotionSystem extends AbstractGameSystem implements PhysicsTic
     
     private Ray constructRay(Entity e) {
         return new Ray(e.get(Position.class).getPosition(), e.get(Direction.class).getDirection());
-    }    
+    }
     private void createRicochetEffect(EntityId id) {
-        ParentEntityFactory.create(new FactoryInfo(ed, getManager().getStepTime()), CreateOnRicochet.class, id, false);
+        CustomerEntityFactory.create(new FactoryInfo(ed, getManager().getStepTime()), CreateOnRicochet.class, id, false);
     }
     private void createImpactEffect(EntityId id) {
-        ParentEntityFactory.create(new FactoryInfo(ed, getManager().getStepTime()), CreateOnImpact.class, id, false);
+        CustomerEntityFactory.create(new FactoryInfo(ed, getManager().getStepTime()), CreateOnImpact.class, id, false);
     }
     private void applyForce(Entity bullet, EntityId target, Vector3f direction) {
         var impulse = ed.getComponent(bullet.getId(), ApplyImpulseOnImpact.class);
         if (impulse != null) {
             ed.setComponents(ed.createEntity(),
-                new Force(direction.mult(bullet.get(Speed.class).getSpeed()*0.25f)),
+                new Force(direction.mult(bullet.get(Speed.class).getSpeed()*impulse.getFactor())),
                 new TargetTo(target),
                 GameUtils.duration(getManager().getStepTime(), 0.2)
             );

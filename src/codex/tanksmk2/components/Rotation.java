@@ -5,6 +5,7 @@
 package codex.tanksmk2.components;
 
 import com.jme3.math.Quaternion;
+import com.jme3.math.Transform;
 import com.jme3.math.Vector3f;
 import com.simsilica.es.EntityComponent;
 
@@ -19,6 +20,9 @@ public class Rotation implements EntityComponent {
     public Rotation() {}
     public Rotation(Quaternion rotation) {
         this.rotation.set(rotation);
+    }
+    public Rotation(Transform t) {
+        t.getRotation(rotation);
     }
     public Rotation(float angle, Vector3f axis) {
         this.rotation.fromAngleAxis(angle, axis);

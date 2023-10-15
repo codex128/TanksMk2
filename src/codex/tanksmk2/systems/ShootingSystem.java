@@ -8,7 +8,7 @@ import codex.tanksmk2.components.*;
 import codex.tanksmk2.factories.BulletStats;
 import codex.tanksmk2.factories.EntityFactory;
 import codex.tanksmk2.factories.FactoryInfo;
-import codex.tanksmk2.factories.ParentEntityFactory;
+import codex.tanksmk2.factories.CustomerEntityFactory;
 import codex.tanksmk2.util.GameUtils;
 import com.jme3.math.Vector3f;
 import com.simsilica.es.CreatedBy;
@@ -48,17 +48,17 @@ public class ShootingSystem extends AbstractGameSystem {
     }
     
     private boolean readyToShoot(Entity e, SimTime time) {
-        return e.get(TriggerInput.class).isPulled()
+        return !GameUtils.isDead(ed, e.getId())
+            && e.get(TriggerInput.class).isPulled()
             && !e.get(Inventory.class).isExhausted(e.get(AmmoChannel.class).getChannel())
             && e.get(Firerate.class).isComplete(time);
     }
     private void shoot(Entity e, SimTime time) {
         for (var g : e.get(EquipedGuns.class).getGuns()) {
             createBullet(e, g, time);
-            ParentEntityFactory.create(new FactoryInfo(ed, time), CreateOnShoot.class, g, true);
+            CustomerEntityFactory.create(new FactoryInfo(ed, time), CreateOnShoot.class, g, true);
         }
-        ed.setComponent(ed.createEntity(), new Supplier(e.get(AmmoChannel.class).getChannel(), -1));
-        e.set(new Trigger(false));
+        ed.setComponents(ed.createEntity(), new TargetTo(e.getId()), new Supplier(e.get(AmmoChannel.class).getChannel(), -1));
         e.set(new Firerate(time.getFutureTime(e.get(Stats.class).get(Stats.FIRERATE))));
     }
     private EntityId createBullet(Entity e, EntityId gun, SimTime time) {
