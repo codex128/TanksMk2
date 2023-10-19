@@ -55,7 +55,7 @@ public class CustomerEntityFactory {
     
     public static EntityId createMuzzleflash(FactoryInfo info, EntityId customer, boolean adopt) {
         var t = getTransform(info.ed, customer, adopt);
-        return EntityFactory.createMuzzleflash(info, t.getTranslation(), new Rotation(t), .2);
+        return EntityFactory.createMuzzleflash(info, t.getTranslation(), new Rotation(t), .04);
     }
     
     public static EntityId createExplosion(FactoryInfo info, EntityId customer, boolean adopt) {

@@ -55,7 +55,7 @@ public class TrackingSystem extends AbstractGameSystem {
         e.set(new Rotation(getConstraint(e.getId()).applyLocal(e.get(LookAt.class).getVector().normalize(), 0f), Vector3f.UNIT_Y));
     }
     private void updateWorld(Entity e) {
-        e.set(new Rotation(getConstraint(e.getId()).applyLocal(e.get(LookAt.class).getVector().subtract(GameUtils.getWorldTransform(ed, e).getTranslation()).normalizeLocal(), 0f), Vector3f.UNIT_Y));
+        e.set(new Rotation(getConstraint(e.getId()).applyLocal(e.get(LookAt.class).getVector().subtract(GameUtils.getWorldTransform(ed, e.getId()).getTranslation()).normalizeLocal(), 0f), Vector3f.UNIT_Y));
     }
     
     private AxisConstraint getConstraint(EntityId id) {

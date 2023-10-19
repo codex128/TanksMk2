@@ -76,7 +76,7 @@ public class WheelSystem extends AbstractGameSystem {
         if (velocity == null || velocity.getVelocity().lengthSquared() == 0f) {
             return 0f;
         }
-        var wTransform = GameUtils.getWorldTransform(ed, e);
+        var wTransform = GameUtils.getWorldTransform(ed, e.getId());
         return velocity.getVelocity().length()*coefficient*getRotationFactor(wTransform.getRotation(), velocity)*(float)time.getTpf();
     }
     private float getRotationFactor(Quaternion rotation, LinearVelocity velocity) {

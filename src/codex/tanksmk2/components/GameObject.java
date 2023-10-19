@@ -30,7 +30,7 @@ public class GameObject implements EntityComponent {
     }
     @Override
     public String toString() {
-        return "GameObject{" + name + '}';
+        return "GameObject[" + name + ']';
     }
     
 }

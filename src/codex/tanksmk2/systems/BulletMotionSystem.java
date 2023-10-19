@@ -12,6 +12,7 @@ import codex.tanksmk2.factories.CustomerEntityFactory;
 import codex.tanksmk2.util.GameUtils;
 import com.jme3.bullet.PhysicsSpace;
 import com.jme3.bullet.PhysicsTickListener;
+import com.jme3.math.FastMath;
 import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
 import com.simsilica.bullet.BulletSystem;
@@ -96,17 +97,20 @@ public class BulletMotionSystem extends AbstractGameSystem implements PhysicsTic
                 var object = (EntityPhysicsObject)iterator.getClosestResult().getCollisionObject();
                 if (ed.getComponent(object.getId(), KillBulletOnTouch.class) != null) {
                     impact = true;
-                }
-                else {
+                } else {
                     var reflect = ed.getComponent(object.getId(), ReflectOnTouch.class);
                     if (reflect != null) {
                         iterator.setNextDirection(GameUtils.ricochet(direction, normal));
                         if (reflect.isConsumeBounce()) {
                             e.set(e.get(Bounces.class).increment());
                         }
-                    }
-                    if (e.get(Bounces.class).isExhausted()) {
-                        impact = true;
+                        if (e.get(Bounces.class).isExhausted()) {
+                            impact = true;
+                        } else {                            
+                            GameUtils.onComponentExists(ed, e.getId(), ApplyImpulseOnRicochet.class, c -> {                       
+                                applyForce(e, object.getId(), iterator.getContactPoint(), direction, c.getFactor(), 0.5f); 
+                            });
+                        }
                     }
                 }
                 if (impact) {
@@ -119,23 +123,22 @@ public class BulletMotionSystem extends AbstractGameSystem implements PhysicsTic
                     }
                     createImpactEffect(e.getId());
                     createImpactEffect(object.getId());
-                    applyForce(e, object.getId(), direction);
-                    // Create a damager entity that instantly kills the bullet.
-                    // Alternatively, if we ever add penetration, a finite damage
-                    // value could be applied to allow bullets to penetrate things.
+                    GameUtils.onComponentExists(ed, e.getId(), ApplyImpulseOnImpact.class, c -> {                       
+                        applyForce(e, object.getId(), iterator.getContactPoint(), direction, c.getFactor(), 0.5f); 
+                    });
                     ed.setComponents(ed.createEntity(),
                         new TargetTo(e.getId()),
                         new Damage(Damage.INFINITE),
-                        GameUtils.duration(getManager().getStepTime(), 0.8)
+                        GameUtils.duration(getManager().getStepTime(), 0.5)
                     );
                     break;
-                }
-                else {
+                } else {
                     createRicochetEffect(e.getId());
                     createRicochetEffect(object.getId());
                 }
             }
         }
+        // bullets are assumed to have no parents that affect their world transform
         e.set(new Position(iterator.getContactPoint()));
         e.set(new Direction(iterator.getNextDirection()));
     }
@@ -144,20 +147,21 @@ public class BulletMotionSystem extends AbstractGameSystem implements PhysicsTic
         return new Ray(e.get(Position.class).getPosition(), e.get(Direction.class).getDirection());
     }
     private void createRicochetEffect(EntityId id) {
-        CustomerEntityFactory.create(new FactoryInfo(ed, getManager().getStepTime()), CreateOnRicochet.class, id, false);
+        CustomerEntityFactory.create(new FactoryInfo(ed, getManager().getStepTime()),
+                CreateOnRicochet.class, id, false);
     }
     private void createImpactEffect(EntityId id) {
-        CustomerEntityFactory.create(new FactoryInfo(ed, getManager().getStepTime()), CreateOnImpact.class, id, false);
+        CustomerEntityFactory.create(new FactoryInfo(ed, getManager().getStepTime()),
+                CreateOnImpact.class, id, false);
     }
-    private void applyForce(Entity bullet, EntityId target, Vector3f direction) {
-        var impulse = ed.getComponent(bullet.getId(), ApplyImpulseOnImpact.class);
-        if (impulse != null) {
-            ed.setComponents(ed.createEntity(),
-                new Force(direction.mult(bullet.get(Speed.class).getSpeed()*impulse.getFactor())),
-                new TargetTo(target),
-                GameUtils.duration(getManager().getStepTime(), 0.2)
-            );
-        }
+    private void applyForce(Entity bullet, EntityId target, Vector3f position, Vector3f direction, float factor, float blend) {
+        var t = GameUtils.getWorldTransform(ed, target);
+        ed.setComponents(ed.createEntity(),
+            new Force(FastMath.interpolateLinear(blend, direction, GameUtils.directionTo(position, t.getTranslation()))
+                    .normalizeLocal().multLocal(bullet.get(Speed.class).getSpeed()*factor)),
+            new TargetTo(target),
+            GameUtils.duration(getManager().getStepTime(), 0.2)
+        );
     }
     
 }

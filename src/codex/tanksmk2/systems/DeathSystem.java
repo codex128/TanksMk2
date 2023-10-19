@@ -52,7 +52,7 @@ public class DeathSystem extends AbstractGameSystem {
     }
     
     private void create(Entity e, SimTime time) {
-        CustomerEntityFactory.create(new FactoryInfo(ed, time), e.get(CreateOnDeath.class), e.getId(), true);
+        CustomerEntityFactory.create(new FactoryInfo(ed, time), e.get(CreateOnDeath.class), e.getId(), false);
         ed.removeComponent(e.getId(), CreateOnDeath.class);
     }
     private void removeTaggedComponents(Entity e) {

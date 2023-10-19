@@ -5,11 +5,8 @@
 package codex.tanksmk2.systems;
 
 import codex.tanksmk2.components.Power;
-import codex.tanksmk2.components.EntityCurve;
-import codex.tanksmk2.util.Curve;
-import codex.tanksmk2.util.GameUtils;
+import codex.tanksmk2.components.PowerCurve;
 import com.simsilica.es.Entity;
-import com.simsilica.es.EntityComponent;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntitySet;
 import com.simsilica.sim.AbstractGameSystem;
@@ -23,43 +20,51 @@ import java.util.LinkedList;
 public class CurveInterpolationSystem extends AbstractGameSystem {
     
     private EntityData ed;
-    private final LinkedList<CurveUpdater> updaters = new LinkedList<>();
+    private final LinkedList<InterpolationUpdate> updaters = new LinkedList<>();
     
     @Override
     protected void initialize() {
         ed = getManager().get(EntityData.class);
-        updaters.add(new CurveUpdater(ed, Power.class) {
+        updaters.add(new InterpolationUpdate(ed, PowerCurve.class, Power.class) {
             @Override
-            public EntityComponent updateComponent(float value) {
-                return new Power(value);
+            protected void update(Entity e, SimTime time) {
+                var c = e.get(PowerCurve.class);
+                e.set(new Power(c.getInterpolator().interpolate(c.getStartTime(), time)));
             }
         });
     }
     @Override
-    protected void terminate() {}
+    protected void terminate() {
+        for (var u : updaters) {
+            u.release();
+        }
+    }
+    @Override
+    public void update(SimTime time) {
+        for (var u : updaters) {
+            u.update(time);
+        }
+    }
     
-    private abstract class CurveUpdater {
+    private abstract class InterpolationUpdate {
         
-        private final EntitySet entities;
+        private EntitySet entities;
         
-        public CurveUpdater(EntityData ed, Class<? extends EntityComponent> type) {
-            entities = ed.getEntities(EntityCurve.class, type);
+        public InterpolationUpdate(EntityData ed, Class... components) {
+            entities = ed.getEntities(components);
         }
         
         public void update(SimTime time) {
             entities.applyChanges();
             for (var e : entities) {
-                update(e, time, e.get(EntityCurve.class));
+                update(e, time);
             }
         }
         public void release() {
             entities.release();
         }
         
-        private void update(Entity e, SimTime time, EntityCurve curve) {
-            e.set(updateComponent(curve.interpolate((float)GameUtils.getSecondsSince(time, curve.getStartTime()))));
-        }        
-        public abstract EntityComponent updateComponent(float value);
+        protected abstract void update(Entity e, SimTime time);
         
     }
     

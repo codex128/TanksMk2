@@ -8,6 +8,7 @@ import codex.tanksmk2.bullet.GeometricShape;
 import codex.tanksmk2.components.*;
 import codex.tanksmk2.states.ModelViewState;
 import codex.tanksmk2.util.GameUtils;
+import codex.tanksmk2.util.debug.ObserveTransform;
 import com.jme3.scene.Spatial;
 import com.simsilica.bullet.Mass;
 import com.simsilica.bullet.SpawnPosition;
@@ -100,7 +101,8 @@ public class SceneEntityFactory {
         var id = info.ed.createEntity();
         info.ed.setComponents(id,
             new Position(spatial.getLocalTranslation()),
-            new Power(power)
+            new Power(power),
+            ObserveTransform.INSTANCE
         );
         return id;
     }

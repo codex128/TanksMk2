@@ -23,7 +23,7 @@ public class TankMoveDirection implements EntityComponent {
         return direction;
     }
     public boolean isMoving() {
-        return direction.lengthSquared() > 0;
+        return !direction.equals(Vector3f.ZERO);
     }
     @Override
     public String toString() {

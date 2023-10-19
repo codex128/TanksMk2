@@ -5,58 +5,31 @@
 package codex.tanksmk2.components;
 
 import com.simsilica.es.EntityComponent;
-import java.util.Arrays;
 
 /**
- *
+ * Indicates if the user is pulling the trigger.
+ * 
+ * <p>Is not directly linked to shooting.
+ * 
  * @author codex
  */
 public class Trigger implements EntityComponent {
     
-    public static final int INPUT = 0, FIRERATE = 1, AMMO = 2;    
-    private final boolean[] flags = new boolean[3];
+    private final boolean pulled;
     
     public Trigger() {
-        setFlags(false);
+        this(false);
     }
-    public Trigger(boolean... flags) {
-        setFlags(flags);
-    }
-    
-    private void setFlags(boolean flags) {
-        for (int i = 0; i < this.flags.length; i++) {
-            this.flags[i] = flags;
-        }
-    }
-    private void setFlags(boolean... flags) {
-        for (int i = 0; i < this.flags.length && i < flags.length; i++) {
-            this.flags[i] = flags[i];
-        }
-    }
-    private Trigger setFlag(int i, boolean flag) {
-        flags[i] = flag;
-        return this;
-    }
-    public Trigger set(int i, boolean flag) {
-        return new Trigger(flags).setFlag(i, flag);
+    public Trigger(boolean pulled) {
+        this.pulled = pulled;
     }
 
-    public boolean[] getFlags() {
-        return flags;
+    public boolean isPulled() {
+        return pulled;
     }
-    public boolean get(int i) {
-        return flags[i];
-    }
-    public boolean allFlagsSatisfied() {
-        for (int i = 0; i < flags.length; i++) {
-            if (!flags[i]) return false;
-        }
-        return true;
-    }
-
     @Override
     public String toString() {
-        return "Trigger{" + "flags=" + Arrays.toString(flags) + '}';
+        return "TriggerInput{" + "pulled=" + pulled + '}';
     }
     
 }

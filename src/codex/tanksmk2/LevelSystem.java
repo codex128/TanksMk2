@@ -10,6 +10,7 @@ import codex.tanksmk2.components.*;
 import codex.tanksmk2.factories.Prefab;
 import codex.tanksmk2.states.CameraState;
 import codex.tanksmk2.util.GameUtils;
+import codex.tanksmk2.util.debug.ObserveTransform;
 import com.jme3.asset.AssetManager;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
@@ -114,13 +115,13 @@ public class LevelSystem extends AbstractGameSystem {
             new InputChannel(InputChannel.AIM)
         );
         ed.setComponents(pGun,
-            new GameObject("tank-gun"),
+            new GameObject("gun"),
             new Parent(pTurret),
             new BoneInfo(player, "muzzle"),
             new ApplyBonePosition(ApplyBonePosition.BONE_TO_ENTITY),
-            new ApplyBoneRotation(ApplyBoneRotation.ENTITY_TO_BONE),
             new Position(),
-            new Rotation()
+            new Rotation(),
+            new CreateOnShoot(Prefab.create("muzzleflash", ed))
         );
         ed.setComponents(pBasicStats,
             new GameObject("basic-stats"),
@@ -182,6 +183,16 @@ public class LevelSystem extends AbstractGameSystem {
                 new ReflectOnTouch()
             );
         }
+        
+        var aoe = ed.createEntity();
+        ed.setComponents(aoe,
+            new GameObject("aoe damager"),
+            new Parent(level),
+            ModelInfo.create("cube", ed),
+            new Position(-10, 0, 10),
+            new AreaOfEffect(5f),
+            new Damage(10f, Damage.PULSE)
+        );
     
     }
     @Override

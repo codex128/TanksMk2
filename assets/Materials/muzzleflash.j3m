@@ -1,26 +1,12 @@
-Material My Material : Common/MatDefs/Light/Lighting.j3md {
+Material My Material : Common/MatDefs/Misc/Unshaded.j3md {
      MaterialParameters {
-        ParallaxHeight : 0.05
         BackfaceShadows : false
-        Shininess : 1
+        PointSize :  1.0
+        ColorMap : "Effects/muzzleflash.png"
         GlowMap : "Effects/muzzleflash.png"
-        HardwareShadows : false
-        SeparateTexCoord : false
-        UseFog : false
-        UseMaterialColors : false
-        VertexLighting : false
-        UseVertexColor : false
-        UseInstancing : false
-        SteepParallax : false
-        PackedNormalParallax : false
-        EnvMapAsSphereMap : false
-        DiffuseMap : "Effects/muzzleflash.png"
      }
     AdditionalRenderState {
       FaceCull Off
-      Blend Alpha
-      Wireframe Off
-      ColorWrite Off
-      DepthWrite Off
+        Blend Alpha
     }
 }

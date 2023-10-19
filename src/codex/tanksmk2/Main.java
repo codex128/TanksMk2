@@ -1,12 +1,12 @@
 package codex.tanksmk2;
 
-import codex.tanksmk2.states.PlayerInputState;
-import codex.tanksmk2.states.*;
 import codex.j3map.J3mapFactory;
 import codex.j3map.processors.*;
 import codex.tanksmk2.bullet.*;
+import codex.tanksmk2.states.*;
 import codex.tanksmk2.systems.*;
 import codex.tanksmk2.util.GameUtils;
+import codex.tanksmk2.util.debug.*;
 import com.jme3.app.BasicProfilerState;
 import com.jme3.app.DebugKeysAppState;
 import com.jme3.app.SimpleApplication;
@@ -25,10 +25,7 @@ import com.jme3.system.AppSettings;
 import com.simsilica.bullet.*;
 import com.simsilica.es.*;
 import com.simsilica.es.base.DefaultEntityData;
-import com.simsilica.event.ErrorEvent;
-import com.simsilica.event.EventBus;
-import com.simsilica.event.EventListener;
-import com.simsilica.event.EventType;
+import com.simsilica.event.*;
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.sim.GameSystem;
 import com.simsilica.sim.SimEvent;
@@ -135,9 +132,12 @@ public class Main extends SimpleApplication implements EventListener<ErrorEvent>
         }
         
         // attach app states
-        stateManager.attach(new LightingState());
-        stateManager.attach(new PlayerInputState());
-        stateManager.attach(new CameraState());
+        stateManager.attachAll(
+            new LightingState(),
+            new PlayerInputState(),
+            new CameraState(),
+            new EntityDebugState()
+        );
         
         // add systems
         addSystems(background,
@@ -156,7 +156,9 @@ public class Main extends SimpleApplication implements EventListener<ErrorEvent>
             new ImpulseSystem(),
             new ShockwaveSystem(),
             new DeathSystem(),
-            new WheelSystem()
+            new WheelSystem(),
+            new CurveInterpolationSystem(),
+            new AOEDamageSystem()
         );        
         background.addSystem(new LevelSystem());
         

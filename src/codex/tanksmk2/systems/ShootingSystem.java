@@ -31,7 +31,7 @@ public class ShootingSystem extends AbstractGameSystem {
     @Override
     protected void initialize() {
         ed = getManager().get(EntityData.class);
-        shooters = ed.getEntities(EquipedGuns.class, TriggerInput.class, Stats.class, Inventory.class, AmmoChannel.class, Firerate.class);
+        shooters = ed.getEntities(EquipedGuns.class, Trigger.class, Stats.class, Inventory.class, AmmoChannel.class, Firerate.class);
     }
     @Override
     protected void terminate() {
@@ -49,7 +49,7 @@ public class ShootingSystem extends AbstractGameSystem {
     
     private boolean readyToShoot(Entity e, SimTime time) {
         return !GameUtils.isDead(ed, e.getId())
-            && e.get(TriggerInput.class).isPulled()
+            && e.get(Trigger.class).isPulled()
             && !e.get(Inventory.class).isExhausted(e.get(AmmoChannel.class).getChannel())
             && e.get(Firerate.class).isComplete(time);
     }

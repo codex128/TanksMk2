@@ -12,8 +12,8 @@ import codex.tanksmk2.components.Position;
 import codex.tanksmk2.components.Power;
 import codex.tanksmk2.components.Rotation;
 import codex.tanksmk2.util.FunctionFilter;
+import codex.tanksmk2.util.GameEntityContainer;
 import codex.tanksmk2.util.GameUtils;
-import codex.tanksmk2.util.PersistentEntityContainer;
 import com.jme3.app.Application;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
@@ -32,7 +32,7 @@ import java.util.ArrayList;
  */
 public class LightingState extends ESAppState {
     
-    private final ArrayList<PersistentEntityContainer<? extends Light>> entities = new ArrayList<>();
+    private final ArrayList<GameEntityContainer<? extends Light>> entities = new ArrayList<>();
     
     @Override
     protected void init(Application app) {
@@ -40,10 +40,11 @@ public class LightingState extends ESAppState {
         entities.add(new PointContainer(ed));
         entities.add(new SpotContainer(ed));
         entities.add(new AmbientContainer(ed));
+        entities.forEach(e -> e.start());
     }
     @Override
     protected void cleanup(Application app) {
-        entities.forEach(e -> e.release());
+        entities.forEach(e -> e.stop());
         entities.clear();
     }
     @Override
@@ -63,7 +64,7 @@ public class LightingState extends ESAppState {
         return null;
     }
     
-    private class DirectionalContainer extends PersistentEntityContainer<DirectionalLight> {
+    private class DirectionalContainer extends GameEntityContainer<DirectionalLight> {
         
         public DirectionalContainer(EntityData ed) {
             super(ed, filter(EntityLight.DIRECTIONAL), EntityLight.class, Rotation.class, LightColor.class);
@@ -72,18 +73,18 @@ public class LightingState extends ESAppState {
         @Override
         protected DirectionalLight addObject(Entity entity) {
             var light = new DirectionalLight();
-            updateObjectChanges(light, entity);
-            updateObject(light, entity);
+            lazyObjectUpdate(light, entity);
+            persistentObjectUpdate(light, entity);
             rootNode.addLight(light);
             return light;
         }
         @Override
-        protected void updateObjectChanges(DirectionalLight t, Entity entity) {
+        protected void lazyObjectUpdate(DirectionalLight t, Entity entity) {
             t.setColor(entity.get(LightColor.class).getColor());
         }
         @Override
-        protected void updateObject(DirectionalLight t, Entity entity) {
-            t.setDirection(GameUtils.getWorldTransform(ed, entity).getRotation().mult(Vector3f.UNIT_Z));            
+        protected void persistentObjectUpdate(DirectionalLight t, Entity entity) {
+            t.setDirection(GameUtils.getWorldTransform(ed, entity.getId()).getRotation().mult(Vector3f.UNIT_Z));            
         }
         @Override
         protected void removeObject(DirectionalLight t, Entity entity) {
@@ -91,7 +92,7 @@ public class LightingState extends ESAppState {
         }
         
     }
-    private class PointContainer extends PersistentEntityContainer<PointLight> {
+    private class PointContainer extends GameEntityContainer<PointLight> {
         
         public PointContainer(EntityData ed) {
             super(ed, filter(EntityLight.POINT), EntityLight.class, Position.class, Power.class, LightColor.class);
@@ -100,19 +101,19 @@ public class LightingState extends ESAppState {
         @Override
         protected PointLight addObject(Entity entity) {
             var light = new PointLight();
-            updateObjectChanges(light, entity);
-            updateObject(light, entity);
+            lazyObjectUpdate(light, entity);
+            persistentObjectUpdate(light, entity);
             rootNode.addLight(light);
             return light;
         }
         @Override
-        protected void updateObjectChanges(PointLight t, Entity entity) {
+        protected void lazyObjectUpdate(PointLight t, Entity entity) {
             t.setRadius(entity.get(Power.class).getPower());
             t.setColor(entity.get(LightColor.class).getColor());
         }
         @Override
-        protected void updateObject(PointLight t, Entity entity) {
-            t.setPosition(GameUtils.getWorldTransform(ed, entity).getTranslation());
+        protected void persistentObjectUpdate(PointLight t, Entity entity) {
+            t.setPosition(GameUtils.getWorldTransform(ed, entity.getId()).getTranslation());
         }
         @Override
         protected void removeObject(PointLight t, Entity entity) {
@@ -120,7 +121,7 @@ public class LightingState extends ESAppState {
         }
         
     }
-    private class SpotContainer extends PersistentEntityContainer<SpotLight> {
+    private class SpotContainer extends GameEntityContainer<SpotLight> {
 
         public SpotContainer(EntityData ed) {
             super(ed, filter(EntityLight.SPOT), EntityLight.class, Position.class, Rotation.class, Power.class, LightCone.class, LightColor.class);
@@ -129,20 +130,20 @@ public class LightingState extends ESAppState {
         @Override
         protected SpotLight addObject(Entity entity) {
             var light = new SpotLight();
-            updateObjectChanges(light, entity);
-            updateObject(light, entity);
+            lazyObjectUpdate(light, entity);
+            persistentObjectUpdate(light, entity);
             rootNode.addLight(light);
             return light;
         }
         @Override
-        protected void updateObjectChanges(SpotLight t, Entity entity) {
+        protected void lazyObjectUpdate(SpotLight t, Entity entity) {
             t.setSpotRange(entity.get(Power.class).getPower());
             entity.get(LightCone.class).applyToSpotLight(t);
             t.setColor(entity.get(LightColor.class).getColor());
         }
         @Override
-        protected void updateObject(SpotLight t, Entity entity) {
-            var transform = GameUtils.getWorldTransform(ed, entity);
+        protected void persistentObjectUpdate(SpotLight t, Entity entity) {
+            var transform = GameUtils.getWorldTransform(ed, entity.getId());
             t.setPosition(transform.getTranslation());
             t.setDirection(transform.getRotation().mult(Vector3f.UNIT_Z));
         }
@@ -152,7 +153,7 @@ public class LightingState extends ESAppState {
         }
         
     }
-    private class AmbientContainer extends PersistentEntityContainer<AmbientLight> {
+    private class AmbientContainer extends GameEntityContainer<AmbientLight> {
 
         public AmbientContainer(EntityData ed) {
             super(ed, filter(EntityLight.AMBIENT), EntityLight.class, LightColor.class);
@@ -161,16 +162,16 @@ public class LightingState extends ESAppState {
         @Override
         protected AmbientLight addObject(Entity entity) {
             var light = new AmbientLight();
-            updateObjectChanges(light, entity);
+            lazyObjectUpdate(light, entity);
             rootNode.addLight(light);
             return light;
         }
         @Override
-        protected void updateObjectChanges(AmbientLight t, Entity entity) {
+        protected void lazyObjectUpdate(AmbientLight t, Entity entity) {
             t.setColor(entity.get(LightColor.class).getColor());
         }
         @Override
-        protected void updateObject(AmbientLight t, Entity entity) {}
+        protected void persistentObjectUpdate(AmbientLight t, Entity entity) {}
         @Override
         protected void removeObject(AmbientLight t, Entity entity) {
             rootNode.removeLight(t);

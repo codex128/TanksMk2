@@ -9,6 +9,7 @@ import codex.tanksmk2.components.*;
 import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.util.CollisionShapeFactory;
 import com.jme3.math.ColorRGBA;
+import com.jme3.math.FastMath;
 import com.jme3.math.Ray;
 import com.jme3.math.Transform;
 import com.jme3.math.Vector2f;
@@ -170,22 +171,9 @@ public class GameUtils {
         for (var t : transforms) {
             world.getTranslation().addLocal(world.getRotation().mult(t.getTranslation()));
             world.getRotation().multLocal(t.getRotation());
+            //world.getScale().multLocal(t.getScale());
         }
         return world;
-    }
-    
-    /**
-     * Calculates the world transform of an entity.
-     * 
-     * @param ed entity data
-     * @param entity entity containing position and rotation components
-     * @return world transform
-     */
-    public static Transform getWorldTransform(EntityData ed, Entity entity) {
-        // Originally, I did a slightly different operation for this method,
-        // but stuff changed and I didn't feel like maintaining an extra, almost
-        // identical method. So, here is an almost useless method.
-        return getWorldTransform(ed, entity.getId());
     }
     
     /**
@@ -392,6 +380,53 @@ public class GameUtils {
         T c = ed.getComponent(id, type);
         if (c == null) return defComponent;
         else return c;
+    }
+    
+    /**
+     * Generates a random unit vector.
+     * <p>
+     * This method is not completely random. It is somewhat
+     * biased toward the "corners."
+     * 
+     * @param store vector to write to, or null to use a new vector
+     * @return random unit vector
+     */
+    public static Vector3f randomUnitVector(Vector3f store) {
+        if (store == null) {
+            store = new Vector3f();
+        }
+        return store.set(
+            FastMath.rand.nextFloat(-1, 1),
+            FastMath.rand.nextFloat(-1, 1),
+            FastMath.rand.nextFloat(-1, 1)
+        ).normalizeLocal();
+    }
+    
+    /**
+     * Returns a vector pointing from one vector to another.
+     * 
+     * @param here
+     * @param there
+     * @return 
+     */
+    public static Vector3f directionTo(Vector3f here, Vector3f there) {
+        return there.subtract(here).normalizeLocal();
+    }
+    
+    /**
+     * Runs the {@link Consumer} if the component exists in the entity.
+     * 
+     * @param <T> component class type
+     * @param ed entity data
+     * @param id id of the entity
+     * @param component class of the desired component
+     * @param notify consumer
+     */
+    public static <T extends EntityComponent> void onComponentExists(EntityData ed, EntityId id, Class<T> component, Consumer<T> notify) {
+        T c = ed.getComponent(id, component);
+        if (c != null) {
+            notify.accept(c);
+        }
     }
     
 }

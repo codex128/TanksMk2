@@ -22,7 +22,8 @@ public class FactoryInfo {
     public int variation;
     public EntityData ed;
     public SimTime time;
-
+    
+    public FactoryInfo() {}
     public FactoryInfo(String name, EntityData ed, SimTime time) {
         this.name = name;
         this.ed = ed;
