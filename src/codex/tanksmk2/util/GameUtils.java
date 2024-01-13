@@ -24,7 +24,6 @@ import com.simsilica.es.common.Decay;
 import com.simsilica.lemur.Axis;
 import com.simsilica.sim.SimTime;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.function.Consumer;
 
 /**
@@ -93,7 +92,7 @@ public class GameUtils {
      * @param normal normal of the reflecting plane
      * @return ricocheted vector
      */
-    public static Vector3f ricochet(Vector3f vector, Vector3f normal) {
+    public static Vector3f reflect(Vector3f vector, Vector3f normal) {
         return normal.mult(normal.dot(vector)*-2).addLocal(vector).normalizeLocal();
     }
     
@@ -143,37 +142,48 @@ public class GameUtils {
     }
     
     /**
-     * Calculates the world transform of an entity.
+     * Calculates the world transform of the entity.
      * 
      * @param ed entity data
      * @param id id of the entity
      * @return world transform
      */
     public static Transform getWorldTransform(EntityData ed, EntityId id) {
-        var transforms = new LinkedList<Transform>();
-        while (id != null) {
-            var position = ed.getComponent(id, Position.class);
-            var rotation = ed.getComponent(id, Rotation.class);
-            if (position != null || rotation != null) {
-                transforms.addFirst(new Transform());
-                if (position != null) {
-                    transforms.getFirst().setTranslation(position.getPosition());
-                }
-                if (rotation != null) {
-                    transforms.getFirst().setRotation(rotation.getRotation());
-                }
-            }
-            var p = ed.getComponent(id, Parent.class);
-            if (p == null) break;
-            id = p.getId();
+        return getWorldTransform(ed, id, null);
+    }
+    
+    /**
+     * Calculates the world transform of an entity and stores it in
+     * the transform instance.
+     * 
+     * @param ed entity data
+     * @param id id of the entity
+     * @param store transform instance to store the result in
+     * @return world transform
+     */
+    public static Transform getWorldTransform(EntityData ed, EntityId id, Transform store) {
+        if (store == null) {
+            store = new Transform();
+        } else {
+            store.set(Transform.IDENTITY);
         }
-        Transform world = new Transform();
-        for (var t : transforms) {
-            world.getTranslation().addLocal(world.getRotation().mult(t.getTranslation()));
-            world.getRotation().multLocal(t.getRotation());
-            //world.getScale().multLocal(t.getScale());
+        fetchWorldTransform(ed, id, store);
+        return store;
+    }
+    
+    private static void fetchWorldTransform(EntityData ed, EntityId id, Transform store) {
+        var parent = ed.getComponent(id, Parent.class);
+        if (parent != null) {
+            fetchWorldTransform(ed, parent.getId(), store);
         }
-        return world;
+        var position = ed.getComponent(id, Position.class);
+        var rotation = ed.getComponent(id, Rotation.class);
+        if (position != null) {
+            store.getTranslation().addLocal(store.getRotation().mult(position.getPosition()));
+        }
+        if (rotation != null) {
+            store.getRotation().multLocal(rotation.getRotation());
+        }
     }
     
     /**
@@ -181,23 +191,37 @@ public class GameUtils {
      * 
      * @param ed entity data
      * @param id id of the entity
-     * @return 
+     * @return world transform of the entity's parent
      */
     public static Transform getParentWorldTransform(EntityData ed, EntityId id) {
+        return getParentWorldTransform(ed, id, null);
+    }
+    
+    /**
+     * Calculates the world transform of an entity's parent and stores it
+     * in the transform instance.
+     * 
+     * @param ed entity data
+     * @param id id of the entity
+     * @param store transform to store the result in
+     * @return world transform
+     */
+    public static Transform getParentWorldTransform(EntityData ed, EntityId id, Transform store) {
         var parent = ed.getComponent(id, Parent.class);
         if (parent != null) {
-            return getWorldTransform(ed, parent.getId());
-        }
-        else {
-            return Transform.IDENTITY;
+            return getWorldTransform(ed, parent.getId(), store);
+        } else if (store != null) {
+            return store.set(Transform.IDENTITY);
+        } else {
+            return new Transform().set(Transform.IDENTITY);
         }
     }
     
     /**
      * Returns true if the entity is dead.
      * <p>
-     * An entity is dead when it contains a {@link Health} component
-     * that is {@link Health#isExhausted()}.
+     * An entity is dead when it or a parent contains a {@link Health} component
+     * that is exhausted.
      * 
      * @param ed entity data
      * @param id id of the entity
@@ -358,8 +382,12 @@ public class GameUtils {
      * @param i starting index of the calculations
      * @return color
      */
-    public static ColorRGBA colorArrayList(ArrayList<String> list, int i) {
-        return color4(list.get(i), list.get(i+1), list.get(i+2), (i+3 < list.size() ? list.get(i+3) : "1"));
+    public static ColorRGBA colorFromArrayList(ArrayList<String> list, int i) {
+        if (list == null || list.size() < i+3) {
+            return null;
+        } else {
+            return color4(list.get(i), list.get(i+1), list.get(i+2), (i+3 < list.size() ? list.get(i+3) : "1"));
+        }
     }
     private static ColorRGBA color4(String r, String g, String b, String a) {
         return new ColorRGBA(Float.parseFloat(r), Float.parseFloat(g), Float.parseFloat(b), Float.parseFloat(a));
@@ -427,6 +455,33 @@ public class GameUtils {
         if (c != null) {
             notify.accept(c);
         }
+    }
+    
+    /**
+     * Creates a ray from the world transform on an entity.
+     * 
+     * @param ed
+     * @param id
+     * @param store stores world transform (or null, to instantiate a new transform)
+     * @return ray conforming to the world transform of the entity
+     */
+    public static Ray getRayFromTransform(EntityData ed, EntityId id, Transform store) {
+        if (store == null) {
+            store = new Transform();
+        }
+        GameUtils.getWorldTransform(ed, id, store);
+        return new Ray(store.getTranslation(), store.getRotation().mult(Vector3f.UNIT_Z));
+    }
+    
+    /**
+     * Kill the entity by giving it a health component with
+     * zero health.
+     * 
+     * @param ed
+     * @param id 
+     */
+    public static void kill(EntityData ed, EntityId id) {
+        ed.setComponent(id, new Health(0));
     }
     
 }

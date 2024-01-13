@@ -8,7 +8,8 @@ import com.simsilica.es.EntityComponent;
 import com.simsilica.es.EntityId;
 
 /**
- *
+ * Sets this entity to target another entity.
+ * 
  * @author codex
  */
 public class TargetTo implements EntityComponent {

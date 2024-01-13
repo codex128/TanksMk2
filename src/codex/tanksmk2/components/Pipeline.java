@@ -16,14 +16,22 @@ public class Pipeline implements EntityComponent {
     
     private final EntityId target;
     private final Class[] components;
+    private final boolean applyToTarget;
 
     public Pipeline(EntityId target, Class... components) {
+        this(target, true, components);
+    }
+    public Pipeline(EntityId target, boolean applyToTarget, Class... components) {
         this.target = target;
+        this.applyToTarget = applyToTarget;
         this.components = components;
     }
 
     public EntityId getTarget() {
         return target;
+    }
+    public boolean isApplyToTarget() {
+        return applyToTarget;
     }
     public Class[] getComponents() {
         return components;

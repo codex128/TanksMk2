@@ -5,9 +5,9 @@
 package codex.tanksmk2.components;
 
 import codex.tanksmk2.util.FunctionFilter;
+import com.jme3.math.FastMath;
 import com.simsilica.es.ComponentFilter;
 import com.simsilica.es.EntityComponent;
-import com.simsilica.sim.SimTime;
 
 /**
  *
@@ -15,23 +15,45 @@ import com.simsilica.sim.SimTime;
  */
 public class Health implements EntityComponent {
     
-    public static final float MAX_POINTS = 100;
-    
-    private final float points;
+    private final float health;
+    private final float max;
+    private final float gain;
 
-    public Health(float points) {
-        this.points = points;
+    public Health(float health) {
+        this.max = this.health = Math.max(health, 0);
+        this.gain = 0;
+    }
+    public Health(float health, float max) {
+        this(health, max, 0);
+    }
+    public Health(float health, float max, float gain) {
+        this.max = Math.max(max, 0);
+        this.health = FastMath.clamp(health, 0, this.max);
+        this.gain = gain;
     }
 
-    public float getPoints() {
-        return points;
+    public float getHealth() {
+        return health;
+    }
+    public float getMaxHealth() {
+        return max;
+    }
+    public float getHealthPercent() {
+        return health/max;
+    }
+    public float getHealthGain() {
+        return gain;
+    }
+    public float getPercentGain() {
+        return gain/max;
     }
     public boolean isExhausted() {
-        return points <= 0;
+        return health <= 0;
     }
+    
     @Override
     public String toString() {
-        return "HealthPoints{" + points + '}';
+        return "Health{" + health + '/' + max + '}';
     }
     
     public Health applyDamage(float damage, Stats stats) {
@@ -41,7 +63,7 @@ public class Health implements EntityComponent {
         return applyDamage(damage*(damage < 0 ? 1 : 1f-armor));
     }
     public Health applyDamage(float damage) {
-        return new Health(points-damage);
+        return new Health(health-damage, max, -damage);
     }
     
     public static ComponentFilter<Health> filter(boolean alive) {

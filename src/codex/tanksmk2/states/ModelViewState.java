@@ -7,32 +7,18 @@ package codex.tanksmk2.states;
 import codex.boost.scene.SceneGraphIterator;
 import codex.tanksmk2.ESAppState;
 import codex.tanksmk2.bullet.GeometricShape;
-import codex.tanksmk2.components.ApplyBonePosition;
-import codex.tanksmk2.components.ApplyBoneRotation;
-import codex.tanksmk2.components.BoneInfo;
-import codex.tanksmk2.components.EmitOnce;
-import codex.tanksmk2.components.MatValue;
-import codex.tanksmk2.components.ModelInfo;
-import codex.tanksmk2.components.GeometricShapeInfo;
-import codex.tanksmk2.components.Parent;
-import codex.tanksmk2.components.Position;
-import codex.tanksmk2.components.Rotation;
-import codex.tanksmk2.components.Scene;
-import codex.tanksmk2.components.TargetTo;
+import codex.tanksmk2.components.*;
 import codex.tanksmk2.util.GameUtils;
 import com.jme3.anim.SkinningControl;
 import com.jme3.app.Application;
 import com.jme3.scene.Spatial;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntitySet;
-import codex.tanksmk2.factories.Factory;
-import codex.tanksmk2.factories.FactoryInfo;
-import codex.tanksmk2.factories.ModelFactory;
-import codex.tanksmk2.factories.Prefab;
-import codex.tanksmk2.factories.SceneEntityFactory;
+import codex.tanksmk2.factories.*;
 import codex.tanksmk2.util.GameEntityContainer;
 import com.epagagames.particles.Emitter;
 import com.jme3.anim.Joint;
+import com.jme3.math.Transform;
 import com.jme3.scene.Geometry;
 import com.simsilica.bullet.CollisionShapes;
 import com.simsilica.bullet.ShapeInfo;
@@ -55,23 +41,23 @@ public class ModelViewState extends ESAppState {
     /**
      * {@link Prefab} name for entities that want to retrieve a model from the cache.
      */
-    public static final String CACHE = "special:cached_model";
+    public static final String CACHE = "[cached_model]";
     
     private ModelContainer models;
     private EntitySet bonePosition, boneRotation, materials, geometryShapes, emitOnce;
-    private Factory<Spatial> modelFactory;
-    private FactoryInfo factoryInfo = new FactoryInfo();
+    private LegacyFactory<Spatial> modelFactory;
+    private final FactoryInfo factoryInfo = new FactoryInfo();
     private CollisionShapes shapes;
     private final HashMap<EntityId, Spatial> modelCache = new HashMap<>();
+    private final LinkedList<CachedMatParam> matCache = new LinkedList<>();
     
     public ModelViewState() {}
-    public ModelViewState(Factory<Spatial> modelFactory) {
+    public ModelViewState(LegacyFactory<Spatial> modelFactory) {
         this.modelFactory = modelFactory;
     }
     
     @Override
     protected void init(Application app) {
-        System.out.println("init model view state");
         models = new ModelContainer();
         System.out.println(1);
         bonePosition = ed.getEntities(BoneInfo.class, ApplyBonePosition.class, Position.class);
@@ -107,6 +93,7 @@ public class ModelViewState extends ESAppState {
     }
     @Override
     public void update(float tpf) {
+        // check for new geometry physics shape entities
         boolean gsu = geometryShapes.applyChanges();
         models.update();
         if (bonePosition.applyChanges()) {
@@ -119,6 +106,7 @@ public class ModelViewState extends ESAppState {
             boneRotation.getChangedEntities().forEach(e -> updateBoneRotationFromEntity(e));
         }
         boneRotation.forEach(e -> updateEntityRotationFromBone(e));
+        applyCachedMatValues();
         if (materials.applyChanges()) {
             materials.getAddedEntities().forEach(e -> updateMaterial(e));
             materials.getChangedEntities().forEach(e -> updateMaterial(e));
@@ -178,14 +166,37 @@ public class ModelViewState extends ESAppState {
     
     private void updateMaterial(Entity e) {
         var view = models.getObject(e.get(TargetTo.class).getTargetId());
-        if (view != null) {
-            var value = e.get(MatValue.class);
-            for (var spatial : new SceneGraphIterator(view.spatial)) {
-                if (spatial instanceof Geometry) {
-                    ((Geometry)spatial).getMaterial().setParam(value.getName(), value.getType(), value.getValue());
-                }
+        var value = e.get(MatValue.class);
+        if (view == null) {
+            // cache the settings to set them later
+            matCache.add(new CachedMatParam(value, e.get(TargetTo.class).getTargetId()));
+            return;
+        }
+        applyToMaterial(view.spatial, value);
+    }
+    private void applyToMaterial(Spatial spatial, MatValue value) {
+        for (var s : new SceneGraphIterator(spatial)) if (s instanceof Geometry) {
+            var mat = ((Geometry)s).getMaterial();
+            // check if the parameter exists
+            if (mat.getMaterialDef().getMaterialParam(value.getName()) == null);
+            else if (value.getValue() != null) {
+                mat.setParam(value.getName(), value.getType(), value.getValue());
+            } else {
+                // clear the parameter (may force shaders to be reloaded)
+                mat.clearParam(value.getName());
             }
         }
+    }
+    private void applyCachedMatValues() {
+        if (matCache.isEmpty()) return;
+        for (var p : matCache) {
+            var view = models.getObject(p.target);
+            if (view == null) {
+                continue;
+            }
+            applyToMaterial(view.spatial, p.value);
+        }
+        matCache.clear();
     }
     private void createGeometryShape(Entity e) {
         var spatial = getSpatial(e.getId());
@@ -198,11 +209,15 @@ public class ModelViewState extends ESAppState {
                 ed.setComponent(e.getId(), info);
             }
         }
+        // consume the activator component
         ed.removeComponent(e.getId(), GeometricShapeInfo.class);
     }
     private void prepareScene(Spatial scene) {
         var list = new LinkedList<Spatial>();
         for (var spatial : new SceneGraphIterator(scene)) {
+            if (spatial == scene) {
+                continue;
+            }
             String name = spatial.getUserData(ENTITY);
             if (name != null) {
                 var id = SceneEntityFactory.create(new FactoryInfo(name, ed, app), spatial);
@@ -211,6 +226,7 @@ public class ModelViewState extends ESAppState {
                     if (parent != null) {
                         ed.setComponent(id, new Parent(parent));
                     }
+                    System.out.println(id+"  "+spatial.getName()+"  parent="+parent);
                     // check if the entity actually wants to control that spatial
                     var model = ed.getComponent(id, ModelInfo.class);
                     if (model != null && model.getName(ed).equals(CACHE)) {
@@ -222,9 +238,9 @@ public class ModelViewState extends ESAppState {
             }
         }
         for (var spatial : list) {
-            // This has to be done afterward, in order to not
-            // interrupt the hierarchy during iteration.
-            rootNode.attachChild(spatial);
+            spatial.removeFromParent();
+            // attaching spatials now may have been causing them to not be positioned correctly
+            //rootNode.attachChild(spatial);
         }
         list.clear();
     }
@@ -235,13 +251,13 @@ public class ModelViewState extends ESAppState {
         if (spatial == null) {
             // manufacture a new model for the entity
             factoryInfo.setPrefab(info.getPrefab());
-            spatial = modelFactory.load(factoryInfo, customer);
+            factoryInfo.setCustomer(customer);
+            spatial = modelFactory.load(factoryInfo);
             if (spatial == null) {
                 throw new NullPointerException("Prefab \""+info.getPrefab().getName(ed)+"\" failed to manufacture model!");
             }
+            GameUtils.appendId(customer, spatial);
         }
-        // append the id to the spatial
-        GameUtils.appendId(customer, spatial);
         return spatial;
     }
     private void cacheModel(EntityId id, Spatial spatial) {
@@ -257,10 +273,13 @@ public class ModelViewState extends ESAppState {
         
         private final Entity entity;
         private final Spatial spatial;
+        private final ModelNecro necro;
+        private final Transform tempTransform = new Transform();
         
         public ModelView(Entity entity) {
             this.entity = entity;
             spatial = createModel(entity.getId(), entity.get(ModelInfo.class));
+            necro = ed.getComponent(entity.getId(), ModelNecro.class);
             lazyUpdate();
             persistentUpdate();
             var s = ed.getComponent(entity.getId(), Scene.class);
@@ -278,13 +297,16 @@ public class ModelViewState extends ESAppState {
                 spatial.removeFromParent();
             }
         }
-        public final void persistentUpdate() {            
-            var transform = GameUtils.getWorldTransform(ed, entity.getId());
-            spatial.setLocalTranslation(transform.getTranslation());
-            spatial.setLocalRotation(transform.getRotation());
+        public final void persistentUpdate() {
+            GameUtils.getWorldTransform(ed, entity.getId(), tempTransform);
+            spatial.setLocalTranslation(tempTransform.getTranslation());
+            spatial.setLocalRotation(tempTransform.getRotation());
         }
         public void destroy() {
             spatial.removeFromParent();
+            if (necro != null) {
+                
+            }
         }
         
     }
@@ -309,6 +331,17 @@ public class ModelViewState extends ESAppState {
         @Override
         protected void removeObject(ModelView t, Entity entity) {
             t.destroy();
+        }
+        
+    }
+    private class CachedMatParam {
+        
+        public final MatValue value;
+        public final EntityId target;
+
+        public CachedMatParam(MatValue value, EntityId target) {
+            this.value = value;
+            this.target = target;
         }
         
     }

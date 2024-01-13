@@ -25,6 +25,8 @@ public class TankPhysicsDriver implements ControlDriver {
     private final EntityData ed;
     private final Entity entity;
     private EntityRigidBody body;
+    private final Vector3f currentMove = new Vector3f();
+    private final Vector3f targetMove = new Vector3f();
     
     public TankPhysicsDriver(EntityData ed, Entity entity) {
         this.ed = ed;
@@ -39,11 +41,12 @@ public class TankPhysicsDriver implements ControlDriver {
     @Override
     public void update(SimTime time, EntityRigidBody body) {
         var stats = entity.get(Stats.class);
-        Vector3f target = entity.get(TankMoveDirection.class).getDirection().mult(stats.get(Stats.MOVE_SPEED));
-        if (!target.equals(Vector3f.ZERO)) {
-            Vector3f current = body.getLinearVelocity(null).setY(0f);
-            current.addLocal(target.subtract(current).normalizeLocal().multLocal(stats.get(Stats.MOVE_ACCEL)));
-            body.setLinearVelocity(current.setY(body.getLinearVelocity().y));
+        targetMove.set(entity.get(TankMoveDirection.class).getDirection()).multLocal(stats.get(Stats.MOVE_SPEED));
+        targetMove.setY(0);
+        if (!targetMove.equals(Vector3f.ZERO)) {
+            body.getLinearVelocity(currentMove).setY(0);
+            currentMove.addLocal(targetMove.subtract(currentMove).normalizeLocal().multLocal(stats.get(Stats.MOVE_ACCEL)));
+            body.setLinearVelocity(currentMove.setY(body.getLinearVelocity().y));
         }
     }
     @Override

@@ -1,0 +1,32 @@
+MaterialDef Simple {
+    MaterialParameters {
+        Color Color : 1.0 0.0 0.0 1.0
+        Float Length : 1.0
+        Float FlickerThreshold : 0.5
+        Float FlickerAdv : 0.0
+        Boolean Glow
+    }
+    Technique {
+        VertexShader   GLSL330 GLSL120 GLSL100 : Shaders/basicVert.vert
+        FragmentShader GLSL330 GLSL120 GLSL100 : Shaders/laser.frag
+        WorldParameters {
+            WorldViewProjectionMatrix
+            WorldMatrix
+            WorldNormalMatrix
+            ViewProjectionMatrix
+            ViewMatrix
+        }
+    }
+    Technique Glow {
+        VertexShader   GLSL330 GLSL120 GLSL100 : Shaders/basicVert.vert
+        FragmentShader GLSL330 GLSL120 GLSL100 : Shaders/laserGlow.frag
+        WorldParameters {
+            GLOW : Glow
+            WorldViewProjectionMatrix
+            WorldMatrix
+            WorldNormalMatrix
+            ViewProjectionMatrix
+            ViewMatrix
+        }
+    }
+}

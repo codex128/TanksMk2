@@ -4,6 +4,7 @@
  */
 package codex.tanksmk2.factories;
 
+import codex.boost.scene.SceneGraphIterator;
 import codex.tanksmk2.components.FlashType;
 import codex.tanksmk2.effects.ColorDistanceInfluencer;
 import codex.tanksmk2.states.ModelViewState;
@@ -30,37 +31,68 @@ import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
+import java.util.LinkedList;
 
 /**
  *
  * @author codex
  */
-public class ModelFactory implements Factory<Spatial> {
+public class ModelFactory implements LegacyFactory<Spatial> {
 
     private final EntityData ed;
     private final AssetManager assetManager;
+    private final LinkedList<ModelProcessor> processors = new LinkedList<>();
 
     public ModelFactory(EntityData ed, AssetManager assetManager) {
+        this(ed, assetManager, true);
+    }
+    public ModelFactory(EntityData ed, AssetManager assetManager, boolean useDefProcessors) {
         this.ed = ed;
         this.assetManager = assetManager;
+        if (useDefProcessors) {
+            processors.add(ModelProcessor.CullHint);
+            processors.add(ModelProcessor.ShadowMode);
+        }
+    }
+    
+    public void addProcessor(ModelProcessor p) {
+        processors.add(p);
+    }
+    public void removeProcessor(ModelProcessor p) {
+        processors.remove(p);
+    }
+    public void clearProcessors() {
+        processors.clear();
     }
     
     @Override
-    public Spatial load(FactoryInfo info, EntityId customer) {
+    public Spatial load(FactoryInfo info) {
+        var model = loadBaseModel(info);
+        for (var p : processors) {
+            p.processSceneRoot(model);
+        }
+        for (var s : new SceneGraphIterator(model)) {
+            for (var p : processors) {
+                p.processSpatial(s);
+            }
+        }
+        return model;
+    }
+    private Spatial loadBaseModel(FactoryInfo info) {
         return switch (info.name) {
             case ModelViewState.CACHE -> null;
             case "testLevel"    -> createTestLevel();
             case "cube"         -> createCube();
             case "tank"         -> createTank();
             case "bullet"       -> createBullet();
-            case "muzzleflash"  -> createMuzzleflash(customer);
+            case "muzzleflash"  -> createMuzzleflash(info.customer);
             case "explosion"    -> createExplosion();
             default -> null;
         };
     }
     
     public Spatial createTestLevel() {
-        return assetManager.loadModel("Scenes/levels/testLevel.j3o");
+        return assetManager.loadModel("Scenes/levels/dungeon1.j3o");
     }
     
     public Spatial createCube() {

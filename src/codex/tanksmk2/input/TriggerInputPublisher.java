@@ -4,7 +4,7 @@
  */
 package codex.tanksmk2.input;
 
-import codex.tanksmk2.components.Trigger;
+import codex.tanksmk2.components.TriggerPull;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.lemur.input.FunctionId;
@@ -46,7 +46,7 @@ public class TriggerInputPublisher implements PlayerInputPublisher, StateFunctio
     }
     @Override
     public void valueChanged(FunctionId func, InputState value, double tpf) {
-        ed.setComponent(entity.getId(), new Trigger(value != InputState.Off));
+        ed.setComponent(entity.getId(), new TriggerPull(value != InputState.Off));
     }
     
 }

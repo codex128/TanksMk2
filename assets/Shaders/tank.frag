@@ -18,6 +18,10 @@ uniform float m_TreadCoord2;
     uniform vec2 m_BurnOffset;
 #endif
 
+#ifdef OVERLAY
+    uniform vec4 m_Overlay;
+#endif
+
 varying vec3 wPosition;
 varying vec3 wNormal;
 varying vec2 texCoord;
@@ -35,30 +39,31 @@ void main() {
     }
     uv.y = fract(uv.y);
     
-    #ifdef BURN
-        vec4 burnColor = texture2D(m_BurnMap, uv + m_BurnOffset);
-    #else
-        vec4 burnColor = vec4(0.0);
-    #endif
-    
     // diffuse
-    vec4 color = mix(texture2D(m_DiffuseMap, uv), burnColor, burnColor.a);
+    vec4 color = texture2D(m_DiffuseMap, uv);
     vec4 offsetMain = m_MainPlaceholder - color;
     vec4 offsetSec = m_SecondaryPlaceholder - color;
     if (length(offsetMain) < m_Similarity) {
         color = m_MainColor + offsetMain;
-    }
-    else if (length(offsetSec) < m_Similarity) {
+    } else if (length(offsetSec) < m_Similarity) {
         color = m_SecondaryColor + offsetSec;
     }
     
-    // specular
+    #ifdef BURN
+        vec4 burnColor = texture2D(m_BurnMap, uv + m_BurnOffset);
+        color = mix(color, burnColor, color.a * burnColor.a);
+    #endif
+    
     vec4 spec = vec4(0.5);
     spec.a = 1.0;
+    color = physicallyBasedRender(wPosition, color, 1.0, spec, 0.0, wNormal);
     
-    // pbr
-    vec4 pbr = physicallyBasedRender(wPosition, color, 1.0, spec, 0.0, wNormal);
+    #ifdef OVERLAY
+        if (m_Overlay.a > 0.0) {
+            color.rgb = mix(color.rgb, m_Overlay.rgb, m_Overlay.a);
+        }
+    #endif
     
-    gl_FragColor = pbr;
+    gl_FragColor = color;
     
 }

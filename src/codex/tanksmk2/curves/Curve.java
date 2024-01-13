@@ -19,22 +19,18 @@ public class Curve implements Interpolator {
     };
     
     private final Handle[] handles;
-    private float scalar = 1f;
+    private float scale = 1f;
     private boolean repeat = false;
     
     public Curve(Curve curve) {
-        this(false, curve.handles);
+        this(curve.handles);
+        scale = curve.scale;
+        repeat = curve.repeat;
     }
     public Curve(Handle... handles) {
-        this(false, handles);
-    }
-    public Curve(boolean sort, Handle... handles) {
         this.handles = handles;
         if (this.handles.length == 0) {
             throw new IllegalArgumentException("Cannot calculate curve having zero handles!");
-        }
-        if (sort) {
-            Arrays.sort(this.handles, SORT);
         }
     }
     
@@ -50,7 +46,7 @@ public class Curve implements Interpolator {
         } else if (i >= handles.length-1) {
             return handles[handles.length-1].getValue();
         }
-        return interpolateIntervalValues(i, handles[i].getEase().apply(getIntervalProgress(i, t)))*scalar;
+        return interpolateIntervalValues(i, handles[i].getEase().apply(getIntervalProgress(i, t)))*scale;
     }
     
     private int getInterval(float t) {
@@ -80,8 +76,21 @@ public class Curve implements Interpolator {
         return handles[handles.length-1].getTime()-handles[0].getTime();
     }
     
+    public void setScale(float scale) {
+        this.scale = scale;
+    }
+    public void setRepeating(boolean repeat) {
+        this.repeat = repeat;
+    }
+    
     public Handle[] getHandles() {
         return handles;
+    }
+    public float getScale() {
+        return scale;
+    }
+    public boolean isRepeating() {
+        return repeat;
     }
     
 }

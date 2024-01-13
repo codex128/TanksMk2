@@ -18,7 +18,7 @@ public class Bounces implements EntityComponent {
         this(bouncesRemaining, 0);
     }
     private Bounces(int bouncesRemaining, int bouncesMade) {
-        this.bouncesRemaining = Math.max(bouncesRemaining, -1);
+        this.bouncesRemaining = Math.max(bouncesRemaining, 0);
         this.bouncesMade = bouncesMade;
     }
 
@@ -29,7 +29,7 @@ public class Bounces implements EntityComponent {
         return bouncesMade;
     }
     public boolean isExhausted() {
-        return bouncesRemaining < 0;
+        return bouncesRemaining <= 0;
     }
     @Override
     public String toString() {

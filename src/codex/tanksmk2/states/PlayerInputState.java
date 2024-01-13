@@ -6,7 +6,7 @@ package codex.tanksmk2.states;
 
 import codex.tanksmk2.ESAppState;
 import codex.tanksmk2.components.Health;
-import codex.tanksmk2.components.InputChannel;
+import codex.tanksmk2.components.InputChannels;
 import codex.tanksmk2.components.PlayerId;
 import codex.tanksmk2.input.*;
 import com.simsilica.es.Entity;
@@ -57,66 +57,80 @@ public class PlayerInputState extends ESAppState {
         publishers.update(tpf);
     }
     
-    private class InputPublisherContainer extends EntityContainer<PlayerInputPublisher> {
+    private class InputPublisherContainer extends EntityContainer<PlayerInputPublisher[]> {
 
         public InputPublisherContainer(EntityData ed) {
-            super(ed, PlayerId.class, InputChannel.class);
+            super(ed, PlayerId.class, InputChannels.class);
         }
         
         public void update(float tpf) {            
-            for (var p : getArray()) {
+            for (var array : getArray()) for (var p : array) {
                 p.update(tpf);
             }
         }
         @Override
-        protected PlayerInputPublisher addObject(Entity entity) {
-            var publisher = createInputPublisher(entity);
-            publisher.onEnable();
-            enableInputGroup(publisher.getFunctions().getGroupName(), true);
-            return publisher;
+        protected PlayerInputPublisher[] addObject(Entity entity) {
+            var pubs = createInputPublisher(entity);
+            for (var p : pubs) {
+                p.onEnable();
+                enableInputGroup(p.getFunctions().getGroupName(), true);
+            }
+            return pubs;
         }
         @Override
-        protected void updateObject(PlayerInputPublisher t, Entity entity) {
+        protected void updateObject(PlayerInputPublisher[] array, Entity entity) {
             //t.update(frameTime);
         }
         @Override
-        protected void removeObject(PlayerInputPublisher t, Entity entity) {
-            t.onDisable();
-            enableInputGroup(t.getFunctions().getGroupName(), false);
+        protected void removeObject(PlayerInputPublisher[] array, Entity entity) {
+            for (var t : array) {
+                t.onDisable();
+                enableInputGroup(t.getFunctions().getGroupName(), false);
+            }
         }
         
-        private PlayerInputPublisher createInputPublisher(Entity entity) {
+        private PlayerInputPublisher[] createInputPublisher(Entity entity) {
             var funcs = functions.get(entity.get(PlayerId.class));
             if (funcs == null) {
                 throw new NullPointerException("Functions not found!");
             }
-            switch (entity.get(InputChannel.class).getChannel()) {
-                case InputChannel.MOVE -> {
-                    return new MoveInputPublisher(ed, inputMapper, entity, funcs);
-                }
-                case InputChannel.AIM -> {
-                    if (funcs.getDevice() == null) {
-                        return new MouseDirectionPublisher(ed, inputManager, entity, funcs, cam);
+            var channels = entity.get(InputChannels.class);
+            PlayerInputPublisher[] pubs = new PlayerInputPublisher[channels.getChannels().length];
+            for (int i = 0; i < pubs.length; i++) {
+                switch (channels.getChannels()[i]) {
+                    case InputChannels.MOVE -> {
+                        pubs[i] = new MoveInputPublisher(ed, inputMapper, entity, funcs);
                     }
-                    else {
-                        return new AimDirectionPublisher(ed, inputMapper, entity, funcs);
+                    case InputChannels.AIM -> {
+                        if (funcs.getDevice() == null) {
+                            pubs[i] = new MouseDirectionPublisher(ed, inputManager, entity, funcs, cam);
+                        } else {
+                            pubs[i] = new AimDirectionPublisher(ed, inputMapper, entity, funcs);
+                        }
+                    }
+                    case InputChannels.SHOOT -> {
+                        pubs[i] = new TriggerInputPublisher(ed, entity, inputMapper, funcs);
+                    }
+                    case InputChannels.SCOPE -> {
+                        pubs[i] = new ScopeInputPublisher(ed, inputMapper, entity, funcs);
+                    }
+                    default -> {
+                        throw new NullPointerException("Unknown input channel: "+channels.getChannels()[i]);
                     }
                 }
-                case InputChannel.SHOOT -> {
-                    return new TriggerInputPublisher(ed, entity, inputMapper, funcs);
-                }
-                default -> throw new NullPointerException("Unknown input channel: "+entity.get(InputChannel.class));
             }
+            return pubs;
         }
         private void enableInputGroup(String group, boolean enable) {
             if (enable) {
                 inputMapper.activateGroup(group);
-            }
-            else {
+            } else {
                 boolean disable = true;
-                for (var t : getArray()) if (t.getFunctions().getGroupName().equals(group)) {
-                    disable = false;
-                    break;
+                for (var array : getArray()) for (var t : array) {
+                    if (t.getFunctions().getGroupName().equals(group)) {
+                        disable = false;
+                        break;
+                    }
                 }
                 if (disable) {
                     inputMapper.deactivateGroup(group);

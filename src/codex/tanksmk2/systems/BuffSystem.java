@@ -10,8 +10,9 @@ import com.simsilica.es.EntitySet;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import java.util.HashMap;
-import codex.tanksmk2.components.StatsBuff;
 import codex.tanksmk2.components.Stats;
+import codex.tanksmk2.components.TargetTo;
+import codex.tanksmk2.util.GameUtils;
 import com.simsilica.es.common.Decay;
 
 /**
@@ -28,7 +29,7 @@ public class BuffSystem extends AbstractGameSystem {
     protected void initialize() {
         System.out.println("initialize buff system");
         ed = getManager().get(EntityData.class);
-        entities = ed.getEntities(StatsBuff.class, Stats.class);
+        entities = ed.getEntities(TargetTo.class, Stats.class);
     }
     @Override
     protected void terminate() {
@@ -38,25 +39,23 @@ public class BuffSystem extends AbstractGameSystem {
     public void update(SimTime time) {
         if (entities.applyChanges()) {
             for (var e : entities) {
-                var target = e.get(StatsBuff.class);
-                if (ed.getComponent(target.getTarget(), Stats.class) == null) {
+                var target = e.get(TargetTo.class);
+                if (ed.getComponent(target.getTargetId(), Stats.class) == null) {
                     // this is important for two reasons:
                     // 1) Buffs can be applied indiscriminantly, even if entities don't end up needing them
                     // 2) So that dead entities are not accidently revived
-                    if (target.isRemoveOnMiss()) {
+                    //if (target.isRemoveOnMiss()) {
                         ed.setComponents(e.getId(), new Decay(time.getTime()));
-                    }
+                    //}
                     continue;
                 }
                 var buff = e.get(Stats.class);
-                var stats = statsMap.get(target.getTarget());
+                var stats = statsMap.get(target.getTargetId());
                 if (stats == null) {
                     stats = new Stats();
-                    statsMap.put(target.getTarget(), stats);
+                    statsMap.put(target.getTargetId(), stats);
                 }
-                for (int i = 0; i < buff.getValues().length; i++) {
-                    stats.set(i, stats.get(i)+buff.get(i));
-                }
+                stats.addLocal(buff);
             }
             statsMap.forEach((id, stats) -> {
                 ed.setComponent(id, stats);

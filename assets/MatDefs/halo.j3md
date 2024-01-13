@@ -1,0 +1,10 @@
+MaterialDef Simple {
+    MaterialParameters {
+        Color Color
+    }
+    Technique {
+        WorldParameters {
+            WorldViewProjectionMatrix
+        }
+    }
+}

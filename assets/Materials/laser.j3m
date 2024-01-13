@@ -1,0 +1,11 @@
+Material My Material : MatDefs/laser.j3md {
+     MaterialParameters {
+        Color : 0.8627451 0.0 0.0 1.0
+        FlickerThreshold : 0.5
+        FlickerAdv : 0.0
+     }
+    AdditionalRenderState {
+      FaceCull Off
+      Blend Off
+    }
+}

@@ -18,8 +18,10 @@ import com.simsilica.lemur.input.InputState;
  */
 public class TankInputFunctions implements Functions {
     
+    public static final int FUNCTIONS = 6;
+    
     private final InputDevice device;
-    private FunctionId[] funcs = new FunctionId[5];
+    private FunctionId[] funcs;
     private String group;
     
     /**
@@ -39,29 +41,30 @@ public class TankInputFunctions implements Functions {
 
     @Override
     public void initializeFunctionIds(String group) {
-        System.out.println("initialize input functions");
-        funcs = new FunctionId[5];
-        funcs[0] = new FunctionId(group, group+":moveX");
-        funcs[1] = new FunctionId(group, group+":moveY");
-        funcs[2] = new FunctionId(group, group+":aimX");
-        funcs[3] = new FunctionId(group, group+":aimY");
-        funcs[4] = new FunctionId(group, group+":shoot");
+        funcs = new FunctionId[FUNCTIONS];
+        funcs[0] = create(group, "moveX");
+        funcs[1] = create(group, "moveY");
+        funcs[2] = create(group, "aimX");
+        funcs[3] = create(group, "aimY");
+        funcs[4] = create(group, "shoot");
+        funcs[5] = create(group, "scope");
         this.group = group;
     }
     @Override
     public void initializeDefaultMappings(InputMapper im) {
         //var device = InputDevice.JOYSTICK1;
         //device.button(...)
-        System.out.println("initialize default input mappings");
+        //device.axis(...)
         if (device == null) {
             im.map(funcs[1], InputState.Positive, KeyInput.KEY_W);
             im.map(funcs[1], InputState.Negative, KeyInput.KEY_S);
             im.map(funcs[0], InputState.Negative, KeyInput.KEY_D);
             im.map(funcs[0], InputState.Positive, KeyInput.KEY_A);
             im.map(funcs[4], Button.MOUSE_BUTTON1);
+            im.map(funcs[5], Button.MOUSE_BUTTON2);
             /*
              * Keyboard does not have imbedded aim controls.
-             * It will instead use the mouse.
+             * It will instead use the mouse position.
              */
         }
         else {
@@ -70,6 +73,7 @@ public class TankInputFunctions implements Functions {
             im.map(funcs[2], device.axis(new Axis("joystick_rx", "Right Stick X")));
             im.map(funcs[3], device.axis(new Axis("joystick_ry", "Right Stick Y")));
             im.map(funcs[4], device.button(Button.JOYSTICK_BUTTON1));
+            im.map(funcs[5], device.button(Button.JOYSTICK_BUTTON2));
         }
     }
     @Override
@@ -100,12 +104,18 @@ public class TankInputFunctions implements Functions {
     public FunctionId getShoot() {
         return funcs[4];
     }
+    public FunctionId getScope() {
+        return funcs[5];
+    }
     
     public static TankInputFunctions forKeyboard() {
         return new TankInputFunctions();
     }
     public static TankInputFunctions forDevice(InputDevice device) {
         return new TankInputFunctions(device);
+    }
+    private static FunctionId create(String group, String name) {
+        return new FunctionId(group, group+":"+name);
     }
     
 }

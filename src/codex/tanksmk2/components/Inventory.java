@@ -38,9 +38,11 @@ public class Inventory implements EntityComponent {
         }
     }
     private void setValues(int... v) {
-        for (int i = 0; i < values.length; i++) {
-            values[i] = v[i];
-        }
+        System.arraycopy(v, 0, values, 0, values.length);
+    }
+    public Inventory set(int i, int n) {
+        values[i] = n;
+        return this;
     }
     
     public int get(int i) {

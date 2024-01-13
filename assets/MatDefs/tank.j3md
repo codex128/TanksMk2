@@ -11,7 +11,10 @@ MaterialDef Tank {
         Float TreadCoord1          : 0.1
         Float TreadCoord2          : 0.2
         Texture2D BurnMap
-        Vector2 BurnOffset : 0.0 0.0
+        Vector2 BurnOffset         : 0.0 0.0
+        Color Overlay
+        Color OutlineColor
+        
         Boolean UseInstancing : false
         Int NumberOfBones
         Matrix4Array BoneMatrices
@@ -32,7 +35,24 @@ MaterialDef Tank {
             ViewMatrix
         }
         Defines {
+            OVERLAY             : Overlay
             BURN                : BurnMap
+            USE_INSTANCING      : UseInstancing
+            NUM_BONES           : NumberOfBones
+            NUM_MORPH_TARGETS   : NumberOfMorphTargets
+            NUM_TARGETS_BUFFERS : NumberOfTargetsBuffers
+        }
+    }
+    Technique Outline {
+        VertexShader   GLSL330 GLSL120 GLSL100 : Shaders/basicVert.vert
+        FragmentShader GLSL330 GLSL120 GLSL100 : Shaders/filters/outlineTec.frag
+        WorldParameters {
+            WorldViewProjectionMatrix
+            WorldMatrix
+            WorldNormalMatrix
+        }
+        Defines {
+            OUTLINE : OutlineColor
             USE_INSTANCING      : UseInstancing
             NUM_BONES           : NumberOfBones
             NUM_MORPH_TARGETS   : NumberOfMorphTargets

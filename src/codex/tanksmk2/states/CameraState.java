@@ -9,7 +9,9 @@ import codex.tanksmk2.components.CameraId;
 import codex.tanksmk2.components.CameraPriority;
 import codex.tanksmk2.components.Position;
 import codex.tanksmk2.components.Rotation;
+import codex.tanksmk2.util.GameUtils;
 import com.jme3.app.Application;
+import com.jme3.math.Transform;
 import com.jme3.renderer.Camera;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntitySet;
@@ -25,10 +27,11 @@ public class CameraState extends ESAppState {
     
     private EntitySet entities;
     private HashMap<CameraId, CameraHolder> cameras = new HashMap<>();
+    private Transform transform = new Transform();
     
     @Override
     protected void init(Application app) {
-        entities = ed.getEntities(CameraId.class, Position.class, Rotation.class, CameraPriority.class);
+        entities = ed.getEntities(CameraId.class, CameraPriority.class);
         cameras.put(APP_CAMERA, new CameraHolder(cam));
     }
     @Override
@@ -70,8 +73,9 @@ public class CameraState extends ESAppState {
     }
     private void updateCameraTransforms() {
         for (var h : cameras.values()) if (h.entity != null) {
-            h.camera.setLocation(h.entity.get(Position.class).getPosition());
-            h.camera.setRotation(h.entity.get(Rotation.class).getRotation());
+            GameUtils.getWorldTransform(ed, h.entity.getId(), transform);
+            h.camera.setLocation(transform.getTranslation());
+            h.camera.setRotation(transform.getRotation());
         }
     }
     

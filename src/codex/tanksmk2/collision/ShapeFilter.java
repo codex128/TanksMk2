@@ -35,12 +35,12 @@ public interface ShapeFilter {
     /**
      * Filter that always confirms shapes.
      */
-    public static final ShapeFilter OPEN = (EntityData ed, EntityId user, EntityId shape) -> true;
+    public static final ShapeFilter Open = (EntityData ed, EntityId user, EntityId shape) -> true;
     
     /**
      * Filter that always rejects shapes.
      */
-    public static final ShapeFilter CLOSED = (EntityData ed, EntityId user, EntityId shape) -> false;
+    public static final ShapeFilter Closed = (EntityData ed, EntityId user, EntityId shape) -> false;
     
     /**
      * Confirms the shape if it has the id.

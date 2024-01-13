@@ -24,7 +24,7 @@ public class PlayerId implements EntityComponent {
     }
     @Override
     public String toString() {
-        return "Player{" + "number=" + id + '}';
+        return "Player[" + id + ']';
     }
     @Override
     public int hashCode() {

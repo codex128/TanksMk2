@@ -4,6 +4,7 @@
  */
 package codex.tanksmk2.components;
 
+import com.jme3.math.ColorRGBA;
 import com.simsilica.es.EntityComponent;
 
 /**
@@ -12,16 +13,24 @@ import com.simsilica.es.EntityComponent;
  */
 public class EntityLight implements EntityComponent {
     
-    public static final int DIRECTIONAL = 0, POINT = 1, SPOT = 2, AMBIENT = 3;
+    public static final int DIRECTIONAL = 0, POINT = 1, SPOT = 2, AMBIENT = 3, PROBE = 4;
     
     private final int type;
+    private final ColorRGBA color;
 
     public EntityLight(int type) {
+        this(type, ColorRGBA.White);
+    }
+    public EntityLight(int type, ColorRGBA color) {
         this.type = type;
+        this.color = color;
     }
 
     public int getType() {
         return type;
+    }
+    public ColorRGBA getColor() {
+        return color;
     }
     
     @Override
@@ -35,6 +44,7 @@ public class EntityLight implements EntityComponent {
             case "point"       -> POINT;
             case "spot"        -> SPOT;
             case "ambient"     -> AMBIENT;
+            case "probe"       -> PROBE;
             default            -> AMBIENT;
         };
     }

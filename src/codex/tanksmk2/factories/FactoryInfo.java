@@ -7,6 +7,7 @@ package codex.tanksmk2.factories;
 import com.jme3.app.Application;
 import com.jme3.app.state.AppStateManager;
 import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
 import com.simsilica.sim.GameSystemManager;
 import com.simsilica.sim.SimTime;
 import com.simsilica.state.GameSystemsState;
@@ -20,6 +21,7 @@ public class FactoryInfo {
     
     public String name;
     public int variation;
+    public EntityId customer;
     public EntityData ed;
     public SimTime time;
     
@@ -82,6 +84,10 @@ public class FactoryInfo {
     }
     public FactoryInfo setPrefab(Prefab prefab) {
         return setName(prefab.getName(ed)).setVariation(variation);
+    }
+    public FactoryInfo setCustomer(EntityId customer) {
+        this.customer = customer;
+        return this;
     }
     
     public void setEntityData(EntityData ed) {

@@ -8,7 +8,8 @@ import com.jme3.math.Vector3f;
 import com.simsilica.es.EntityComponent;
 
 /**
- *
+ * Target move direction.
+ * 
  * @author codex
  */
 public class TargetMove implements EntityComponent {

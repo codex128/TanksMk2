@@ -29,4 +29,15 @@ public enum GeometricShape {
         return name;
     }
     
+    /**
+     * Version of {@link #valueOf(java.lang.Class, java.lang.String)} which
+     * conforms to the userdata policy (lower-case first letter).
+     * 
+     * @param name
+     * @return 
+     */
+    public static GeometricShape value(String name) {
+        return valueOf(GeometricShape.class, Character.toUpperCase(name.charAt(0))+name.substring(1));
+    }
+    
 }

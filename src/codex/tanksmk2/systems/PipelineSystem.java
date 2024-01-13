@@ -7,6 +7,7 @@ package codex.tanksmk2.systems;
 import codex.tanksmk2.components.Pipeline;
 import codex.tanksmk2.util.GameUtils;
 import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
@@ -36,13 +37,19 @@ public class PipelineSystem extends AbstractGameSystem {
             var pipeline = e.get(Pipeline.class);
             if (!GameUtils.entityExists(ed, pipeline.getTarget())) {
                 ed.removeComponent(e.getId(), Pipeline.class);
-                continue;
+            } else if (pipeline.isApplyToTarget()) {
+                apply(e.getId(), pipeline.getTarget(), pipeline.getComponents());
+            } else {
+                apply(pipeline.getTarget(), e.getId(), pipeline.getComponents());
             }
-            for (Class type : pipeline.getComponents()) {
-                var component = ed.getComponent(e.getId(), type);
-                if (component != null) {
-                    ed.setComponent(pipeline.getTarget(), component);
-                }
+        }
+    }
+    
+    private void apply(EntityId from, EntityId to, Class[] components) {
+        for (Class type : components) {
+            var c = ed.getComponent(from, type);
+            if (c != null) {
+                ed.setComponent(to, c);
             }
         }
     }

@@ -4,20 +4,17 @@
  */
 package codex.tanksmk2;
 
-import codex.j3map.J3map;
 import codex.tanksmk2.bullet.GeometricShape;
 import codex.tanksmk2.components.*;
 import codex.tanksmk2.factories.Prefab;
 import codex.tanksmk2.states.CameraState;
-import codex.tanksmk2.util.GameUtils;
-import codex.tanksmk2.util.debug.ObserveTransform;
+import codex.tanksmk2.factories.blueprints.impl.Tank;
+import codex.vfx.utils.VfxUtils;
 import com.jme3.asset.AssetManager;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.FastMath;
 import com.jme3.math.Vector3f;
-import com.jme3.shader.VarType;
 import com.simsilica.bullet.Mass;
-import com.simsilica.bullet.ShapeInfo;
 import com.simsilica.bullet.SpawnPosition;
 import com.simsilica.es.EntityData;
 import com.simsilica.sim.AbstractGameSystem;
@@ -36,109 +33,47 @@ public class LevelSystem extends AbstractGameSystem {
     
     @Override
     protected void initialize() {
-    
-        System.out.println("initialize level");
         
         ed = getManager().get(EntityData.class);
         assetManager = getManager().get(AssetManager.class);
         scene = SceneId.create();
         
-        // create the player
-        var player = ed.createEntity();
-        var pId = PlayerId.create();
-        var pBase = ed.createEntity();
-        var pWheelFR = ed.createEntity();
-        var pTreads = ed.createEntity();
-        var pTurret = ed.createEntity();
-        var pGun = ed.createEntity();
-        var pBasicStats = ed.createEntity();
-        var source = (J3map)assetManager.loadAsset("Properties/tank.stats");
-        ed.setComponents(player,
-            new GameObject("tank"),
-            scene,
-            pId,
-            ModelInfo.create("tank", ed),
-            ShapeInfo.create("tank", ed),
-            //new GeometricShapeInfo(Prefab.generateUnique(), GeometricShape.MergedHull),
-            new Mass(2000f),
-            new SpawnPosition(new Vector3f()),
-            new Position(),
-            new Rotation(),
-            new Stats(),
-            new Inventory(-1),
-            new EquipedGuns(pGun),
-            new InputChannel(InputChannel.SHOOT),
-            new Firerate(0),
-            new AmmoChannel(Inventory.BULLETS),
-            new Health(100),
-            KillBulletOnTouch.INSTANCE,
-            new DecayFromDeath(.2),
-            new RemoveOnDeath(ModelInfo.class, ShapeInfo.class),
-            new CreateOnDeath(Prefab.create("explosion", ed))
-        );
-        ed.setComponents(pBase,
-            new GameObject("tank-base"),
-            new Parent(player),
-            pId,
-            new BoneInfo(player, "base"),
-            new ApplyBoneRotation(ApplyBoneRotation.ENTITY_TO_BONE),
-            new Rotation(),
-            new InputChannel(InputChannel.MOVE),
-            new TurnSpeed(2.5f),
-            new StatPointer(player, Stats.MOVE_SPEED),
-            new Drive(true),
-            new Pipeline(player, TankMoveDirection.class) // copies the velocity component over to the main player entity
-        );
-        ed.setComponents(pWheelFR,
-            new GameObject("wheel"),
-            new Parent(pBase),
-            new BoneInfo(player, "wheel.FR"),
-            //new ApplyBoneRotation(ApplyBoneRotation.ENTITY_TO_BONE),
-            new Rotation(),
-            new Wheel(0f)
-        );
-        ed.setComponents(pTreads,
-            new GameObject("tread"),
-            new Parent(pBase),
-            new Tread("TreadOffset1", 0f),
-            new TargetTo(player)
-        );
-        ed.setComponents(pTurret,
-            new GameObject("turret"),
-            new Parent(player),
-            pId,
-            new BoneInfo(player, "turret"),
-            new ApplyBonePosition(ApplyBonePosition.BONE_TO_ENTITY),
-            new ApplyBoneRotation(ApplyBoneRotation.ENTITY_TO_BONE),
-            new Position(),
-            new Rotation(),
-            new InputChannel(InputChannel.AIM)
-        );
-        ed.setComponents(pGun,
-            new GameObject("gun"),
-            new Parent(pTurret),
-            new BoneInfo(player, "muzzle"),
-            new ApplyBonePosition(ApplyBonePosition.BONE_TO_ENTITY),
-            new Position(),
-            new Rotation(),
-            new CreateOnShoot(Prefab.create("muzzleflash", ed))
-        );
-        ed.setComponents(pBasicStats,
-            new GameObject("basic-stats"),
-            new Parent(player),
-            new Stats().set(Stats.MOVE_SPEED, 20f),
-            new StatsBuff(player)
-        );
-        ed.setComponents(ed.createEntity(),
-            new MatValue("MainColor", VarType.Vector4, ColorRGBA.Black),
-            new TargetTo(player),
-            GameUtils.duration(getManager().getStepTime(), 0.5)
-        );
-        ed.setComponents(ed.createEntity(),
-            new MatValue("SecondaryColor", VarType.Vector4, ColorRGBA.DarkGray),
-            new TargetTo(player),
-            GameUtils.duration(getManager().getStepTime(), 0.5)
-        );
+        Tank player = new Tank();
+        player.setCreationInfo(ed, getManager().getStepTime());
+        player.create();
+        player.setPosition(new Vector3f(-7, 0, -7));
+        player.setPlayerId(PlayerId.create());
+        player.setTeam(0);
+        player.setStat(Stats.BOUNCES, 1);
+        player.setStat(Stats.MOVE_SPEED, 12);
+        //player.setGunLaserBounces(1);
+        player.setupHud(HeadsUpDisplay.BOTTOM_RIGHT);
+        player.setInventory(Inventory.BULLETS, 900);
+        //player.setOutlineColor(ColorRGBA.White.mult(.1f));
+        player.setOutlineColor(ColorRGBA.Blue);
+        player.setHealth(200);
+        
+        Tank enemy = new Tank();
+        enemy.setCreationInfo(ed, getManager().getStepTime());
+        for (int a = -1; a < 2; a += 2) {
+            for (int i = 0; i < 3; i++) {
+                for (int j = 0; j < 3; j++) {
+                    // creates a new set of entities to work with
+                    enemy.create();
+                    enemy.setPosition(new Vector3f(12*a+(i*3*a), 0, 22-j*3));
+                    enemy.setTeam(1);
+                    enemy.setTriggerType(TriggerType.SEMI);
+                    enemy.setMainColor(ColorRGBA.Green);
+                    enemy.setOutlineColor(ColorRGBA.Red.mult(.2f));
+                    enemy.setStat(Stats.BOUNCES, 3);
+                    enemy.setStat(Stats.BULLET_SPEED, 30);
+                    enemy.setStat(Stats.DAMAGE, 25);
+                    //enemy.setGunLaserBounces(0);
+                    ed.setComponent(enemy.getMain(), new BasicTurret(1f, enemy.getTurret()));
+                    ed.setComponent(enemy.getTurret(), new Rotation(VfxUtils.gen.nextFloat(FastMath.TWO_PI), Vector3f.UNIT_Y));
+                }
+            }
+        }
         
         var camera = ed.createEntity();
         ed.setComponents(camera,
@@ -146,6 +81,7 @@ public class LevelSystem extends AbstractGameSystem {
             CameraState.APP_CAMERA,
             new Position(0, 45, -50),
             new Rotation(new Vector3f(0, -1, 1), Vector3f.UNIT_Y),
+            new AudioListener(0),
             new CameraPriority()
         );
         
@@ -162,12 +98,12 @@ public class LevelSystem extends AbstractGameSystem {
             new GameObject("level-scene"),
             new Scene(),
             new ModelInfo(Prefab.create("testLevel", ed), false),
-            new Position(0f, -5f, 0f),
+            new Position(0, -5, 0),
             new Rotation()
             //GameUtils.duration(getManager().getStepTime(), 10)
         );
         
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 10; i++) {
             ed.setComponents(ed.createEntity(),
                 new GameObject("cube"),
                 ModelInfo.create("cube", ed),
@@ -184,14 +120,31 @@ public class LevelSystem extends AbstractGameSystem {
             );
         }
         
-        var aoe = ed.createEntity();
-        ed.setComponents(aoe,
-            new GameObject("aoe damager"),
+        var damageInfluencer = ed.createEntity();
+        ed.setComponents(damageInfluencer,
+            new GameObject("AOE"),
             new Parent(level),
             ModelInfo.create("cube", ed),
+            WorldTransform.INIT,
             new Position(-10, 0, 10),
-            new AreaOfEffect(5f),
-            new Damage(10f, Damage.PULSE)
+            new AreaOfInfluence(10f),
+            new Damage(2f, Damage.PULSE)
+        );
+        
+        var statInfluencer = ed.createEntity();
+        ed.setComponents(statInfluencer,
+            new GameObject("AOE"),
+            new Parent(level),
+            ModelInfo.create("cube", ed),
+            WorldTransform.INIT,
+            new Position(-10, 0, -10),
+            new AreaOfInfluence(5f),
+            new Stats()
+                .set(Stats.FIRERATE, -0.05f)
+                .set(Stats.BULLET_SPEED, 20)
+                .set(Stats.BOUNCES, 3)
+                //.set(Stats.MOVE_SPEED, 10)
+                //.set(Stats.MOVE_ACCEL, 10)
         );
     
     }

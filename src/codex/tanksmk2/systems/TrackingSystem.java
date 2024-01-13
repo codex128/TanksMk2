@@ -46,8 +46,7 @@ public class TrackingSystem extends AbstractGameSystem {
     private void update(Entity e) {
         if (e.get(LookAt.class).isLocal()) {
             updateLocal(e);
-        }
-        else {
+        } else {
             updateWorld(e);
         }
     }

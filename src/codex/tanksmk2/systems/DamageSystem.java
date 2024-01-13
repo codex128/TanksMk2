@@ -66,7 +66,6 @@ public class DamageSystem extends AbstractGameSystem {
     }
     private void updatePulse(Entity e, EntityId target, Health hitpoints, SimTime time) {
         if (time.getTimeInSeconds()%Damage.PULSE_FREQUENCY < lastFrameSeconds%Damage.PULSE_FREQUENCY) {
-            System.out.println("apply pulse: "+hitpoints.getPoints());
             ed.setComponent(target, hitpoints.applyDamage(e.get(Damage.class).getDamage(), getStats(target)));
         }
     }

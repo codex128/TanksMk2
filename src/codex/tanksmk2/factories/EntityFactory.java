@@ -36,8 +36,10 @@ public class EntityFactory {
             new ApplyImpulseOnRicochet(.05f),
             new RemoveOnDeath(ModelInfo.class),
             new DecayFromDeath(0),
+            LaserEmitter.INSTANCE,
+            new LaserInfo(0.05f, ColorRGBA.Red.mult(.01f))
             // for testing
-            GameUtils.duration(info.time, 10)
+            //GameUtils.duration(info.time, 10)
         );
         return bullet;
     }
@@ -51,11 +53,10 @@ public class EntityFactory {
         info.ed.setComponents(id,
             new GameObject("muzzleflash"),
             ModelInfo.create("muzzleflash", info.ed),
-            new EntityLight(EntityLight.POINT),
+            new EntityLight(EntityLight.POINT, ColorRGBA.Orange),
             new Position(position),
             rotation,
             new Power(100f),
-            new LightColor(ColorRGBA.Orange),
             GameUtils.duration(info.time, time)
         );
         return id;
@@ -66,17 +67,18 @@ public class EntityFactory {
         info.ed.setComponents(id,
             new GameObject("explosion"),
             ModelInfo.create("explosion", info.ed),
-            new EntityLight(EntityLight.POINT),
+            new EntityLight(EntityLight.POINT, ColorRGBA.Orange),
             new Position(position),
             new Rotation(),
             new Shockwave(power, size),
+            new EntityParticleEffect("shockwave", Prefab.create("shockwave", info.ed), false),
+            new Emission("shockwave", 1, Emission.ENTITY),
             new Power(.1f),
             new PowerCurve(info.time.getTimeInSeconds(), new Curve(
                 new Handle(0f, .1f, Easing.smoothStep),
                 new Handle(.05f, 1000f, Easing.smoothStep),
                 new Handle(.5f, .1f))
             ),
-            new LightColor(ColorRGBA.Orange),
             EmitOnce.INSTANCE,
             GameUtils.duration(info.time, 5.0)
         );
